@@ -8,7 +8,7 @@ Makefile:9: *** recipe commences before first target.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Feb 15 10:37:30 2022
+# Make data base, printed on Tue Feb 15 11:36:06 2022
 
 # Variables
 
@@ -55,7 +55,7 @@ VTE_VERSION = 6003
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-gb","availableLanguages":{},"_languagePackSupport":true}
 # environment
-JOURNAL_STREAM = 8:54968
+JOURNAL_STREAM = 8:56677
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # environment
@@ -77,7 +77,7 @@ MANDATORY_PATH = /usr/share/gconf/ubuntu.mandatory.path
 # environment
 XDG_DATA_DIRS = /usr/share/ubuntu:/home/annadollbo/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
 # environment
-DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus,guid=47cc3cf286368c3b18f8afbd620b64ff
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
@@ -117,7 +117,7 @@ DISABLE_WAYLAND = 1
 # environment
 VSCODE_CRASH_REPORTER_START_OPTIONS = {"companyName":"Microsoft","productName":"VSCode","submitURL":"appcenter://code?aid=fba07a4d-84bd-4fc8-a125-9640fc8ce171&uid=ec8c86ce-e72b-46fb-a3cd-69269091345d&iid=ec8c86ce-e72b-46fb-a3cd-69269091345d&sid=ec8c86ce-e72b-46fb-a3cd-69269091345d","uploadToServer":true}
 # environment
-INVOCATION_ID = 6932dd619e5541f0acb5aaffe0a3d876
+INVOCATION_ID = 1fb5de4cf3714999aa2ea4b0adee91f4
 # environment
 GDK_PIXBUF_MODULEDIR = /snap/code/88/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders
 # default
@@ -159,7 +159,7 @@ VSCODE_CODE_CACHE_PATH = /home/annadollbo/.config/Code/CachedData/f80445acd5a3da
 # environment
 LOGNAME = annadollbo
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 SNAP_LIBRARY_PATH = /var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void
 # environment
@@ -197,7 +197,7 @@ CC = "g++"
 # environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-82091912-1a2e-4a9b-8d32-6e7bd82ff42f.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-93a3980b-773a-4deb-8521-bbaebcbcc5e9.sock
 # default
 MAKE_VERSION := 4.2.1
 # environment
@@ -216,8 +216,6 @@ XDG_CURRENT_DESKTOP = Unity
 LC_TELEPHONE = nl_NL.UTF-8
 # default
 MAKE_COMMAND := make
-# environment
-OLDPWD = /home/annadollbo
 # default
 .VARIABLES := 
 # automatic
@@ -260,14 +258,16 @@ LC_MEASUREMENT = nl_NL.UTF-8
 SNAP_NAME = code
 # environment
 LC_ALL = C
+# environment
+DBUS_STARTER_BUS_TYPE = session
 # makefile (from 'Makefile', line 7)
 LIBS = 'pkg-config --cflags --libs opencv4'
 # environment
-GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/37a3a499_68b5_4354_955e_abee1e216a4c
+GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/b1d92b8c_f618_486d_b461_26bccec113ed
 # automatic
 ^F = $(notdir $^)
 # environment
-GNOME_TERMINAL_SERVICE = :1.349
+GNOME_TERMINAL_SERVICE = :1.777
 # default
 SUFFIXES := 
 # environment
@@ -285,14 +285,16 @@ LC_IDENTIFICATION = nl_NL.UTF-8
 # environment
 LC_ADDRESS = nl_NL.UTF-8
 # environment
+ 
 LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 14614
+VSCODE_PID = 23727
+# environment
+DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=47cc3cf286368c3b18f8afbd620b64ff
 # variable set hash-table stats:
- 
-# Load=139/1024=14%, Rehash=0, Collisions=18/152=12%
+# Load=140/1024=14%, Rehash=0, Collisions=18/153=12%
 
 # Pattern-specific Variable Values
 
@@ -300,9 +302,9 @@ VSCODE_PID = 14614
 
 # Directories
 
-# . (device 66306, inode 1444138): 10 files, no impossibilities.
+# . (device 66306, inode 1444138): 13 files, no impossibilities.
 
-# 10 files, no impossibilities in 1 directories.
+# 13 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -337,12 +339,12 @@ Makefile:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 15 / storage = 134 B / avg = 8 B
-# current buf: size = 8162 B / used = 134 B / count = 15 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 18 / storage = 162 B / avg = 9 B
+# current buf: size = 8162 B / used = 162 B / count = 18 / avg = 9 B
 
-# strcache performance: lookups = 19 / hit rate = 21%
+# strcache performance: lookups = 22 / hit rate = 18%
 # hash-table stats:
-# Load=15/8192=0%, Rehash=0, Collisions=1/19=5%
-# Finished Make data base on Tue Feb 15 10:37:30 2022
+# Load=18/8192=0%, Rehash=0, Collisions=1/22=5%
+# Finished Make data base on Tue Feb 15 11:36:07 2022
 
  
