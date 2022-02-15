@@ -1,6 +1,4 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-Makefile:9: *** recipe commences before first target.  Stop.
- 
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -8,7 +6,7 @@ Makefile:9: *** recipe commences before first target.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Feb 15 11:36:06 2022
+# Make data base, printed on Tue Feb 15 11:41:15 2022
 
 # Variables
 
@@ -159,7 +157,7 @@ VSCODE_CODE_CACHE_PATH = /home/annadollbo/.config/Code/CachedData/f80445acd5a3da
 # environment
 LOGNAME = annadollbo
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 SNAP_LIBRARY_PATH = /var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void
 # environment
@@ -197,7 +195,7 @@ CC = "g++"
 # environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-93a3980b-773a-4deb-8521-bbaebcbcc5e9.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-99a2c89b-e974-4c07-b969-53f6d4d4a5e4.sock
 # default
 MAKE_VERSION := 4.2.1
 # environment
@@ -285,12 +283,11 @@ LC_IDENTIFICATION = nl_NL.UTF-8
 # environment
 LC_ADDRESS = nl_NL.UTF-8
 # environment
- 
 LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 23727
+VSCODE_PID = 24716
 # environment
 DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=47cc3cf286368c3b18f8afbd620b64ff
 # variable set hash-table stats:
@@ -332,6 +329,9 @@ Makefile:
 #  File has not been updated.
 
 # files hash-table stats:
+ 
+Makefile:9: *** recipe commences before first target.  Stop.
+ 
 # Load=4/1024=0%, Rehash=0, Collisions=0/5=0%
 # VPATH Search Paths
 
@@ -345,6 +345,6 @@ Makefile:
 # strcache performance: lookups = 22 / hit rate = 18%
 # hash-table stats:
 # Load=18/8192=0%, Rehash=0, Collisions=1/22=5%
-# Finished Make data base on Tue Feb 15 11:36:07 2022
+# Finished Make data base on Tue Feb 15 11:41:15 2022
 
  
