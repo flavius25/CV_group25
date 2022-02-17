@@ -110,6 +110,16 @@ int main()
   */
   cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T);
 
+  std::string filename = "Params.xml";
+
+  // Saving the parameters in an XML file
+  FileStorage fs (filename, FileStorage:: WRITE); 
+  fs << "cameraMatrix" << cameraMatrix;
+  fs << "distCoeffs" << distCoeffs;
+  fs << "Rotation_vector" << R;
+  fs << "Translation_vector" << T;
+  fs.release();
+
   std::cout << "cameraMatrix : " << cameraMatrix << std::endl;
   std::cout << "distCoeffs : " << distCoeffs << std::endl;
   std::cout << "Rotation vector : " << R << std::endl;
