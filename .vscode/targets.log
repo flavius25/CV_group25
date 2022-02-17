@@ -1,4 +1,6 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+make: *** No rule to make target 'all'.  Stop.
+ 
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -6,11 +8,11 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Feb 15 11:41:15 2022
+# Make data base, printed on Thu Feb 17 12:21:30 2022
 
 # Variables
 
-# environment
+# 'override' directive
 GNUMAKEFLAGS := 
 # automatic
 <D = $(patsubst %/,%,$(dir $<))
@@ -24,8 +26,8 @@ DESKTOP_SESSION = ubuntu
 .SHELLFLAGS := -c
 # environment
 XDG_SESSION_CLASS = user
-# makefile (from 'Makefile', line 5)
-SRC = main.cpp
+# makefile (from 'Makefile', line 4)
+SRC = Calibration2.cpp
 # environment
 SNAP_COMMON = /var/snap/code/common
 # environment
@@ -53,7 +55,7 @@ VTE_VERSION = 6003
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-gb","availableLanguages":{},"_languagePackSupport":true}
 # environment
-JOURNAL_STREAM = 8:56677
+JOURNAL_STREAM = 8:52951
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # environment
@@ -75,11 +77,11 @@ MANDATORY_PATH = /usr/share/gconf/ubuntu.mandatory.path
 # environment
 XDG_DATA_DIRS = /usr/share/ubuntu:/home/annadollbo/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
 # environment
-DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus,guid=47cc3cf286368c3b18f8afbd620b64ff
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-MANAGERPID = 1699
+MANAGERPID = 1607
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # environment
@@ -95,7 +97,7 @@ PATH = /home/annadollbo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-SESSION_MANAGER = local/annadollbo:@/tmp/.ICE-unix/1992,unix/annadollbo:/tmp/.ICE-unix/1992
+SESSION_MANAGER = local/annadollbo:@/tmp/.ICE-unix/1901,unix/annadollbo:/tmp/.ICE-unix/1901
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -115,7 +117,7 @@ DISABLE_WAYLAND = 1
 # environment
 VSCODE_CRASH_REPORTER_START_OPTIONS = {"companyName":"Microsoft","productName":"VSCode","submitURL":"appcenter://code?aid=fba07a4d-84bd-4fc8-a125-9640fc8ce171&uid=ec8c86ce-e72b-46fb-a3cd-69269091345d&iid=ec8c86ce-e72b-46fb-a3cd-69269091345d&sid=ec8c86ce-e72b-46fb-a3cd-69269091345d","uploadToServer":true}
 # environment
-INVOCATION_ID = 1fb5de4cf3714999aa2ea4b0adee91f4
+INVOCATION_ID = d9bfcb6dad1d47e5b74e8967a02d0018
 # environment
 GDK_PIXBUF_MODULEDIR = /snap/code/88/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders
 # default
@@ -139,7 +141,7 @@ PWD = /home/annadollbo/Documents/ComputerVision/CV_group25
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 1923
+SSH_AGENT_PID = 1834
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -195,7 +197,7 @@ CC = "g++"
 # environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-99a2c89b-e974-4c07-b969-53f6d4d4a5e4.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-e871d68f-47ff-4d87-b928-0e880d759154.sock
 # default
 MAKE_VERSION := 4.2.1
 # environment
@@ -205,7 +207,7 @@ SNAP_REVISION = 88
 # environment
 LC_MONETARY = nl_NL.UTF-8
 # makefile
-.DEFAULT_GOAL := 
+.DEFAULT_GOAL := output
 # environment
 XDG_CURRENT_DESKTOP = Unity
 # automatic
@@ -214,6 +216,8 @@ XDG_CURRENT_DESKTOP = Unity
 LC_TELEPHONE = nl_NL.UTF-8
 # default
 MAKE_COMMAND := make
+# environment
+OLDPWD = /home/annadollbo/Documents/ComputerVision
 # default
 .VARIABLES := 
 # automatic
@@ -256,16 +260,14 @@ LC_MEASUREMENT = nl_NL.UTF-8
 SNAP_NAME = code
 # environment
 LC_ALL = C
+# makefile (from 'Makefile', line 6)
+LIBS = `pkg-config --cflags --libs opencv4`
 # environment
-DBUS_STARTER_BUS_TYPE = session
-# makefile (from 'Makefile', line 7)
-LIBS = 'pkg-config --cflags --libs opencv4'
-# environment
-GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/b1d92b8c_f618_486d_b461_26bccec113ed
+GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/5f3b4116_0025_4044_95e8_f84e19e054e5
 # automatic
 ^F = $(notdir $^)
 # environment
-GNOME_TERMINAL_SERVICE = :1.777
+GNOME_TERMINAL_SERVICE = :1.165
 # default
 SUFFIXES := 
 # environment
@@ -287,11 +289,10 @@ LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 24716
-# environment
-DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=47cc3cf286368c3b18f8afbd620b64ff
+VSCODE_PID = 33957
+ 
 # variable set hash-table stats:
-# Load=140/1024=14%, Rehash=0, Collisions=18/153=12%
+# Load=139/1024=14%, Rehash=0, Collisions=20/166=12%
 
 # Pattern-specific Variable Values
 
@@ -312,15 +313,16 @@ DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=47cc3cf286368c3b18f8afb
 # Not a target:
 all:
 #  Command line target.
-#  Implicit rule search has not been done.
-#  Modification time never checked.
+#  Implicit rule search has been done.
+#  File does not exist.
 #  File has not been updated.
 
 # Not a target:
 Makefile:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
+#  Implicit rule search has been done.
+#  Last modified 2022-02-17 12:21:28.655859024
+#  File has been updated.
+#  Successfully updated.
 
 # Not a target:
 .DEFAULT:
@@ -328,23 +330,33 @@ Makefile:
 #  Modification time never checked.
 #  File has not been updated.
 
+# Not a target:
+Calibration2.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+output: Calibration2.cpp
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 9):
+		$(CC) $(SRC) -o $(PROJECT) $(LIBS)
+
 # files hash-table stats:
- 
-Makefile:9: *** recipe commences before first target.  Stop.
- 
-# Load=4/1024=0%, Rehash=0, Collisions=0/5=0%
+# Load=6/1024=1%, Rehash=0, Collisions=0/17=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 18 / storage = 162 B / avg = 9 B
-# current buf: size = 8162 B / used = 162 B / count = 18 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 18 / storage = 166 B / avg = 9 B
+# current buf: size = 8162 B / used = 166 B / count = 18 / avg = 9 B
 
-# strcache performance: lookups = 22 / hit rate = 18%
+# strcache performance: lookups = 25 / hit rate = 28%
 # hash-table stats:
-# Load=18/8192=0%, Rehash=0, Collisions=1/22=5%
-# Finished Make data base on Tue Feb 15 11:41:15 2022
+# Load=18/8192=0%, Rehash=0, Collisions=1/25=4%
+# Finished Make data base on Thu Feb 17 12:21:30 2022
 
  

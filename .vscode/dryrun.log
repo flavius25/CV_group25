@@ -1,6 +1,5 @@
-make --dry-run --always-make --keep-going --print-directory
+make --dry-run --keep-going --print-directory
 make: Entering directory '/home/annadollbo/Documents/ComputerVision/CV_group25'
+make: 'output' is up to date.
 make: Leaving directory '/home/annadollbo/Documents/ComputerVision/CV_group25'
- 
-Makefile:9: *** recipe commences before first target.  Stop.
  

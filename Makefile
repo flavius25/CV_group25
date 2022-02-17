@@ -1,10 +1,9 @@
-	CC = "g++"
+CC = "g++"
 
-	PROJECT = output
+PROJECT = output
+SRC = Calibration2.cpp
 
-	SRC = main.cpp
-
-	LIBS = 'pkg-config --cflags --libs opencv4'
+LIBS = `pkg-config --cflags --libs opencv4`
 	
-	$(PROJECT) : $(SRC)
+$(PROJECT) : $(SRC)
 		$(CC) $(SRC) -o $(PROJECT) $(LIBS)
