@@ -9,6 +9,7 @@
 #include <opencv2/highgui.hpp>
 #include <stdio.h>
 #include <iostream>
+#include<typeinfo>
 
 //#define CV_CALIB_CB_ADAPTIVE_THRESH 1
 //#define CV_CALIB_CB_FAST_CHECK 8
@@ -42,8 +43,9 @@ int main() {
   }
 
   cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
-  rmsRP_Error = cv::calibrateCamera(objectPointsGlobal, imagePointsGlobal, cv::Size(intRows, intCols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
-  
+  rmsRP_Error = cv::calibrateCamera(objectPointsGlobal, imagePointsGlobal, cv::Size(intRows, intCols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors);
+  //, CALIB_USE_INTRINSIC_GUESS|CALIB_FIX_PRINCIPAL_POINT
+   
 
   std::string filename = "Params.xml";
 
@@ -157,8 +159,9 @@ double iterationBody() {
 
   cv::destroyAllWindows();
 
-  std::vector<cv::Mat> cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics;
+  cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics;
   std::vector <float> perViewErrors;
+  std::cout << typeid(perViewErrors).name() << std::endl;
 
   /*
   * Performing camera calibration by 
@@ -168,7 +171,11 @@ double iterationBody() {
   */
 
   double rmsRP_Error;
-  rmsRP_Error = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
+  rmsRP_Error = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors);
+  //CALIB_USE_INTRINSIC_GUESS|CALIB_FIX_PRINCIPAL_POINT
+
+
+  std::cout << typeid(perViewErrors).name() << std::endl;
 
   //Getting the index of the element with the most error, adding it to vector of image-indices to ignore
   int maxElementIndex = std::max_element(perViewErrors.begin(), perViewErrors.end()) - perViewErrors.begin();
