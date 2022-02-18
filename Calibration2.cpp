@@ -26,13 +26,17 @@ std::vector<std::vector<cv::Point3f>> objectPointsGlobal;
 std::vector<std::vector<cv::Point2f>> imagePointsGlobal;
 int intRows;
 int intCols;
+int noImagesUsed = 15;
+int minImages = 5;
+float epsilon = 2; 
+
 
 int main() {
 
 
   double rmsRP_Error = iterationBody();
 
-  while (rmsRP_Error > 2){
+  while (rmsRP_Error > epsilon){
     rmsRP_Error = iterationBody();
   }
 
@@ -91,11 +95,13 @@ double iterationBody() {
   std::vector<cv::Point2f> corner_pts;
   bool success;
 
+  //Declaration of vector with indices of images to ignore
   std::vector <int> imagesToIgnore;
   // Looping over all the images in the directory
 
   for(int i{0}; i<images.size(); i++)
   {
+    //check if image should be ignore, if so, continue
     if (std::find(imagesToIgnore.begin(), imagesToIgnore.end(), i) != imagesToIgnore.end()){
       continue;
     }
@@ -152,7 +158,6 @@ double iterationBody() {
 
   cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics;
   std::vector <float> perViewErrors;
-  
 
   /*
   * Performing camera calibration by 
@@ -160,13 +165,15 @@ double iterationBody() {
   * and corresponding pixel coordinates of the 
   * detected corners (imgpoints)
   */
-  //std::vector <vector> perViewError;
+
   double rmsRP_Error;
   rmsRP_Error = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors);
 
+  //Getting the index of the element with the most error, adding it to vector of image-indices to ignore
   int maxElementIndex = std::max_element(perViewErrors.begin(), perViewErrors.end()) - perViewErrors.begin();
   imagesToIgnore.push_back(maxElementIndex);
 
+  //Assigning values to global variables so that cameraCalibration can be called outside scope of function
   objectPointsGlobal = objpoints;
   imagePointsGlobal = imgpoints; 
   intRows = gray.rows;
