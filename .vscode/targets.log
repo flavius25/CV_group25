@@ -1,6 +1,4 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-make: *** No rule to make target 'all'.  Stop.
- 
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -8,7 +6,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Feb 17 14:53:14 2022
+# Make data base, printed on Fri Feb 18 12:35:30 2022
 
 # Variables
 
@@ -55,7 +53,7 @@ VTE_VERSION = 6003
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-gb","availableLanguages":{},"_languagePackSupport":true}
 # environment
-JOURNAL_STREAM = 8:50140
+JOURNAL_STREAM = 8:56002
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # environment
@@ -81,7 +79,7 @@ DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-MANAGERPID = 1562
+MANAGERPID = 1622
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # environment
@@ -97,7 +95,7 @@ PATH = /home/annadollbo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-SESSION_MANAGER = local/annadollbo:@/tmp/.ICE-unix/1850,unix/annadollbo:/tmp/.ICE-unix/1850
+SESSION_MANAGER = local/annadollbo:@/tmp/.ICE-unix/1901,unix/annadollbo:/tmp/.ICE-unix/1901
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -117,7 +115,7 @@ DISABLE_WAYLAND = 1
 # environment
 VSCODE_CRASH_REPORTER_START_OPTIONS = {"companyName":"Microsoft","productName":"VSCode","submitURL":"appcenter://code?aid=fba07a4d-84bd-4fc8-a125-9640fc8ce171&uid=ec8c86ce-e72b-46fb-a3cd-69269091345d&iid=ec8c86ce-e72b-46fb-a3cd-69269091345d&sid=ec8c86ce-e72b-46fb-a3cd-69269091345d","uploadToServer":true}
 # environment
-INVOCATION_ID = 7ffb90b036864154a91fa9cf4bcea7b8
+INVOCATION_ID = db5ab1fc9e564d65993addba483721b4
 # environment
 GDK_PIXBUF_MODULEDIR = /snap/code/88/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders
 # default
@@ -141,7 +139,7 @@ PWD = /home/annadollbo/Documents/ComputerVision/CV_group25
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 1779
+SSH_AGENT_PID = 1840
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -197,7 +195,7 @@ CC = "g++"
 # environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-5142d8b7-19cd-40c4-bf6b-70191d214c28.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-95e00ff9-09ce-4ac6-948e-87235602e7df.sock
 # default
 MAKE_VERSION := 4.2.1
 # environment
@@ -263,11 +261,11 @@ LC_ALL = C
 # makefile (from 'Makefile', line 6)
 LIBS = `pkg-config --cflags --libs opencv4`
 # environment
-GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/744839a3_b8fd_43f2_a67b_f1e89a78b0ba
+GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/84661d33_751f_4e10_9b86_30b2da7cd947
 # automatic
 ^F = $(notdir $^)
 # environment
-GNOME_TERMINAL_SERVICE = :1.94
+GNOME_TERMINAL_SERVICE = :1.116
 # default
 SUFFIXES := 
 # environment
@@ -284,15 +282,17 @@ LC_IDENTIFICATION = nl_NL.UTF-8
 .RECIPEPREFIX := 
 # environment
 LC_ADDRESS = nl_NL.UTF-8
- 
 # environment
 LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 7448
+VSCODE_PID = 7844
 # variable set hash-table stats:
 # Load=139/1024=14%, Rehash=0, Collisions=20/166=12%
+ 
+make: *** No rule to make target 'all'.  Stop.
+ 
 
 # Pattern-specific Variable Values
 
@@ -300,9 +300,9 @@ VSCODE_PID = 7448
 
 # Directories
 
-# . (device 66306, inode 1444138): 14 files, no impossibilities.
+# . (device 66306, inode 1444138): 13 files, no impossibilities.
 
-# 14 files, no impossibilities in 1 directories.
+# 13 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -351,12 +351,12 @@ output: Calibration2.cpp
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 19 / storage = 182 B / avg = 9 B
-# current buf: size = 8162 B / used = 182 B / count = 19 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 18 / storage = 172 B / avg = 9 B
+# current buf: size = 8162 B / used = 172 B / count = 18 / avg = 9 B
 
-# strcache performance: lookups = 26 / hit rate = 26%
+# strcache performance: lookups = 25 / hit rate = 28%
 # hash-table stats:
-# Load=19/8192=0%, Rehash=0, Collisions=1/26=4%
-# Finished Make data base on Thu Feb 17 14:53:14 2022
+# Load=18/8192=0%, Rehash=0, Collisions=1/25=4%
+# Finished Make data base on Fri Feb 18 12:35:30 2022
 
  
