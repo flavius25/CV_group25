@@ -100,7 +100,8 @@ int main()
 
   cv::destroyAllWindows();
 
-  cv::Mat cameraMatrix,distCoeffs,R,T;
+  cv::Mat cameraMatrix,distCoeffs,R,T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
+  //std::vector<float> perViewErrors;
 
   /*
    * Performing camera calibration by 
@@ -108,22 +109,54 @@ int main()
    * and corresponding pixel coordinates of the 
    * detected corners (imgpoints)
   */
-  cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T);
+  //std::vector <vector> perViewError;
+  double rms = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors);
+
+/*
+  double computeReprojectionErrors( const std::vector<vector<Point3f> >& objectPoints,
+                          const vector<vector<Point2f> >& imagePoints,
+                          const vector<Mat>& rvecs, const vector<Mat>& tvecs,
+                          const Mat& cameraMatrix , const Mat& distCoeffs,
+                          vector<float>& perViewErrors)
+  {
+  std::vector<Point2f> imagePoints2;
+  int i, totalPoints = 0;
+  double totalErr = 0, err;
+  perViewErrors.resize(objectPoints.size());
+
+  for( i = 0; i < (int)objectPoints.size(); ++i )
+  {
+    projectPoints( Mat(objectPoints[i]), rvecs[i], tvecs[i], cameraMatrix,  // project
+                                        distCoeffs, imagePoints2);
+    err = norm(Mat(imagePoints[i]), Mat(imagePoints2), CV_L2);              // difference
+
+    int n = (int)objectPoints[i].size();
+    perViewErrors[i] = (float) std::sqrt(err*err/n);                        // save for this view
+    totalErr        += err*err;                                             // sum it up
+    totalPoints     += n;
+  }
+
+  return std::sqrt(totalErr/totalPoints);              // calculate the arithmetical mean
+  }
+  */
 
   std::string filename = "Params.xml";
 
   // Saving the parameters in an XML file
-  FileStorage fs (filename, FileStorage:: WRITE); 
+  cv::FileStorage fs (filename, FileStorage:: WRITE); 
   fs << "cameraMatrix" << cameraMatrix;
   fs << "distCoeffs" << distCoeffs;
   fs << "Rotation_vector" << R;
   fs << "Translation_vector" << T;
+  fs << "PerViewErrors" << perViewErrors;
   fs.release();
 
   std::cout << "cameraMatrix : " << cameraMatrix << std::endl;
   std::cout << "distCoeffs : " << distCoeffs << std::endl;
   std::cout << "Rotation vector : " << R << std::endl;
   std::cout << "Translation vector : " << T << std::endl;
+  std::cout << "Overall RMS projection errors : " << rms;
+  std::cout << "Per view errors : " << perViewErrors; 
 
   return 0;
 }
