@@ -53,9 +53,10 @@ int main()
 
     std::vector <int> imagesToIgnore;
     // Looping over all the images in the directory
+
     for(int i{0}; i<images.size(); i++)
     {
-      if (i == ____){
+      if (std::find(imagesToIgnore.begin(), imagesToIgnore.end(), i) != imagesToIgnore.end()){
         continue;
       }
       else {
@@ -99,7 +100,7 @@ int main()
       //int down_height = 720;
       //Mat resized_up;
 
-      //resize(frame, resized_up, Size(down_width, down_height), INTER_LINEAR);
+      //resize(frame, resized_up, Size(down_width, down_height), INperViewErrorsTER_LINEAR);
 
 
       cv::imshow("Image", frame);
