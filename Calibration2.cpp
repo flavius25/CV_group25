@@ -35,110 +35,98 @@ int main()
       objp.push_back(0.022*cv::Point3f(j,i,0));
   }
 
+  //initialise rmsRP_Error (overall RMS reprojection error) to arbitrary value above 1
+  double rmsRP_Error = 5;
 
-  // Extracting path of individual image stored in a given directory
-  std::vector<cv::String> images;
-  // Path of the folder containing checkerboard images
-  std::string path = "./images/*.jpg";
+  do {
+    // Extracting path of individual image stored in a given directory
+    std::vector<cv::String> images;
+    // Path of the folder containing checkerboard images
+    std::string path = "./images/*.jpg";
 
-  cv::glob(path, images);
+    cv::glob(path, images);
 
-  cv::Mat frame, gray;
-  // vector to store the pixel coordinates of detected checker board corners 
-  std::vector<cv::Point2f> corner_pts;
-  bool success;
+    cv::Mat frame, gray;
+    // vector to store the pixel coordinates of detected checker board corners 
+    std::vector<cv::Point2f> corner_pts;
+    bool success;
 
-  // Looping over all the images in the directory
-  for(int i{0}; i<images.size(); i++)
-  {
-    frame = cv::imread(images[i]);
-
-    int x = frame.size().width;
-    int y = frame.size().height;
-
-    //int down_width = 1280;
-    //int down_height = 720;
-    //Mat resized_up;
-
-    //resize(frame, resized_up, Size(down_width, down_height), INTER_LINEAR);
-
-    cv::cvtColor(frame,gray,cv::COLOR_BGR2GRAY);
-
-    // Finding checker board corners
-    // If desired number of corners are found in the image then success = true  
-    success = cv::findChessboardCorners(gray, cv::Size(CHECKERBOARD[0], CHECKERBOARD[1]), corner_pts, CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_FAST_CHECK | CALIB_CB_NORMALIZE_IMAGE);
-    
-    /* 
-     * If desired number of corner are detected,
-     * we refine the pixel coordinates and display 
-     * them on the images of checker board
-    */
-    if(success)
+    std::vector <int> imagesToIgnore;
+    // Looping over all the images in the directory
+    for(int i{0}; i<images.size(); i++)
     {
-      cv::TermCriteria criteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.001);
+      if (i == ____){
+        continue;
+      }
+      else {
+      frame = cv::imread(images[i]);
+
+      int x = frame.size().width;
+      int y = frame.size().height;
+
+      //int down_width = 1280;
+      //int down_height = 720;
+      //Mat resized_up;
+
+      //resize(frame, resized_up, Size(down_width, down_height), INTER_LINEAR);
+
+      cv::cvtColor(frame,gray,cv::COLOR_BGR2GRAY);
+
+      // Finding checker board corners
+      // If desired number of corners are found in the image then success = true  
+      success = cv::findChessboardCorners(gray, cv::Size(CHECKERBOARD[0], CHECKERBOARD[1]), corner_pts, CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_FAST_CHECK | CALIB_CB_NORMALIZE_IMAGE);
       
-      // refining pixel coordinates for given 2d points.
-      cv::cornerSubPix(gray,corner_pts,cv::Size(11,11), cv::Size(-1,-1),criteria);
-      
-      // Displaying the detected corner points on the checker board
-      cv::drawChessboardCorners(frame, cv::Size(CHECKERBOARD[0], CHECKERBOARD[1]), corner_pts, success);
-      
-      objpoints.push_back(objp);
-      imgpoints.push_back(corner_pts);
+      /* 
+      * If desired number of corner are detected,
+      * we refine the pixel coordinates and display 
+      * them on the images of checker board
+      */
+      if(success)
+      {
+        cv::TermCriteria criteria(TermCriteria::EPS | TermCriteria::MAX_ITER, 30, 0.001);
+        
+        // refining pixel coordinates for given 2d points.
+        cv::cornerSubPix(gray,corner_pts,cv::Size(11,11), cv::Size(-1,-1),criteria);
+        
+        // Displaying the detected corner points on the checker board
+        cv::drawChessboardCorners(frame, cv::Size(CHECKERBOARD[0], CHECKERBOARD[1]), corner_pts, success);
+        
+        objpoints.push_back(objp);
+        imgpoints.push_back(corner_pts);
+      }
+
+      //int down_width = 1280;
+      //int down_height = 720;
+      //Mat resized_up;
+
+      //resize(frame, resized_up, Size(down_width, down_height), INTER_LINEAR);
+
+
+      cv::imshow("Image", frame);
+      cv::waitKey(0);
     }
 
-    //int down_width = 1280;
-    //int down_height = 720;
-    //Mat resized_up;
+    cv::destroyAllWindows();
 
-    //resize(frame, resized_up, Size(down_width, down_height), INTER_LINEAR);
+    cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics;
+    std::vector <float> perViewErrors;
+    
+
+    /*
+    * Performing camera calibration by 
+    * passing the value of known 3D points (objpoints)
+    * and corresponding pixel coordinates of the 
+    * detected corners (imgpoints)
+    */
+    //std::vector <vector> perViewError;
+    rmsRP_Error = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors);
+
+    int maxElementIndex = std::max_element(perViewErrors.begin(),perViewErrors.end()) - perViewErrors.begin();
+    imagesToIgnore.push_back(maxElementIndex);
 
 
-    cv::imshow("Image", frame);
-    cv::waitKey(0);
   }
-
-  cv::destroyAllWindows();
-
-  cv::Mat cameraMatrix,distCoeffs,R,T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
-  //std::vector<float> perViewErrors;
-
-  /*
-   * Performing camera calibration by 
-   * passing the value of known 3D points (objpoints)
-   * and corresponding pixel coordinates of the 
-   * detected corners (imgpoints)
-  */
-  //std::vector <vector> perViewError;
-  double rms = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors);
-
-/*
-  double computeReprojectionErrors( const std::vector<vector<Point3f> >& objectPoints,
-                          const vector<vector<Point2f> >& imagePoints,
-                          const vector<Mat>& rvecs, const vector<Mat>& tvecs,
-                          const Mat& cameraMatrix , const Mat& distCoeffs,
-                          vector<float>& perViewErrors)
-  {
-  std::vector<Point2f> imagePoints2;
-  int i, totalPoints = 0;
-  double totalErr = 0, err;
-  perViewErrors.resize(objectPoints.size());
-
-  for( i = 0; i < (int)objectPoints.size(); ++i )
-  {
-    projectPoints( Mat(objectPoints[i]), rvecs[i], tvecs[i], cameraMatrix,  // project
-                                        distCoeffs, imagePoints2);
-    err = norm(Mat(imagePoints[i]), Mat(imagePoints2), CV_L2);              // difference
-
-    int n = (int)objectPoints[i].size();
-    perViewErrors[i] = (float) std::sqrt(err*err/n);                        // save for this view
-    totalErr        += err*err;                                             // sum it up
-    totalPoints     += n;
-  }
-
-  return std::sqrt(totalErr/totalPoints);              // calculate the arithmetical mean
-  }
-  */
+  while (rmsRP_Error > 2); 
 
   std::string filename = "Params.xml";
 
@@ -149,6 +137,7 @@ int main()
   fs << "Rotation_vector" << R;
   fs << "Translation_vector" << T;
   fs << "PerViewErrors" << perViewErrors;
+  fs << "overallRMS_RPError" << rms; 
   fs.release();
 
   std::cout << "cameraMatrix : " << cameraMatrix << std::endl;
