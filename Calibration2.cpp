@@ -29,6 +29,7 @@ int intCols;
 int noImagesUsed = 15;
 int minImages = 5;
 float epsilon = 2; 
+bool maxIterationsReached = false;
 
 
 int main() {
@@ -36,7 +37,7 @@ int main() {
 
   double rmsRP_Error = iterationBody();
 
-  while (rmsRP_Error > epsilon){
+  while (rmsRP_Error > epsilon || maxIterationsReached){
     rmsRP_Error = iterationBody();
   }
 
@@ -172,6 +173,10 @@ double iterationBody() {
   //Getting the index of the element with the most error, adding it to vector of image-indices to ignore
   int maxElementIndex = std::max_element(perViewErrors.begin(), perViewErrors.end()) - perViewErrors.begin();
   imagesToIgnore.push_back(maxElementIndex);
+
+  if(noImagesUsed - imagesToIgnore.size() == minImages) {
+    maxIterationsReached = true;
+  }
 
   //Assigning values to global variables so that cameraCalibration can be called outside scope of function
   objectPointsGlobal = objpoints;
