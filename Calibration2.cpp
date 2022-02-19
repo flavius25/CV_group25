@@ -89,6 +89,16 @@ void print(std::vector <int> const &a) {
    
 }
 
+void print(std::vector <float> const &a) {
+   std::cout << "The vector elements are : ";
+
+   for(int i=0; i < a.size(); i++){
+      std::cout << a.at(i) << ' ';
+   }
+   std::cout << std::endl;
+   
+}
+
 // int getIndex(std::vector<cv::String> v, int K)
 // {
 //     auto it = find(v.begin(), v.end(), K);
@@ -111,15 +121,15 @@ void print(std::vector <int> const &a) {
 *when the vector of perViewErrors is getting smaller
 
 */
-void insertZeros(std::vector<float> vec){
+ std::vector<float> insertZeros(std::vector<float> vec){
 
   for(int i{0}; i<imagesToIgnore.size(); i++){
     
-      auto itPos = imagesToIgnore.begin() + imagesToIgnore[i];
+      auto itPos = vec.begin() + imagesToIgnore[i];
       float zero = 0.0;
       vec.insert(itPos, zero);
   }
-
+  return vec;
 }
 
 double iterationBody() {
@@ -240,15 +250,14 @@ double iterationBody() {
   
 
   //Passing vector to function "___" to make sure that index taken in next step correspond to index of image in original array used
-  insertZeros(perViewErrorsVector);
+  perViewErrorsVector = insertZeros(perViewErrorsVector);
+  print(perViewErrorsVector);
 
   //Getting the index of the element with the most error, adding it to vector of image-indices to ignore
   int maxElementIndex = std::max_element(perViewErrorsVector.begin(), perViewErrorsVector.end()) - perViewErrorsVector.begin();
   imagesToIgnore.push_back(maxElementIndex);
   
-  //getIndex(images,perViewErrorsVector[maxElementIndex])
-  //int imageToIgnoreIndex = getIndex(images,perViewErrorsVector[maxElementIndex]);
-  //imagesToIgnore.push_back(imageToIgnoreIndex);
+
 
   if(noImagesUsed - imagesToIgnore.size() == minImages) {
     maxIterationsReached = true;
