@@ -31,6 +31,10 @@ int noImagesUsed = 15;
 int minImages = 5;
 float epsilon = 2; 
 bool maxIterationsReached = false;
+bool drawImages = false;
+
+//Declaration of vector with indices of images to ignore
+std::vector <int> imagesToIgnore;
 
 
 int main() {
@@ -41,6 +45,8 @@ int main() {
   while (rmsRP_Error > epsilon || maxIterationsReached){
     rmsRP_Error = iterationBody();
   }
+  drawImages = true;
+  iterationBody();
 
   cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
   rmsRP_Error = cv::calibrateCamera(objectPointsGlobal, imagePointsGlobal, cv::Size(intRows, intCols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors);
@@ -98,8 +104,6 @@ double iterationBody() {
   std::vector<cv::Point2f> corner_pts;
   bool success;
 
-  //Declaration of vector with indices of images to ignore
-  std::vector <int> imagesToIgnore;
   // Looping over all the images in the directory
 
   for(int i{0}; i<images.size(); i++)
@@ -151,16 +155,17 @@ double iterationBody() {
 
       //resize(frame, resized_up, Size(down_width, down_height), INperViewErrorsTER_LINEAR);
 
-
+      if (drawImages) {
       cv::imshow("Image", frame);
       cv::waitKey(0);
+      }
 
-      //Debug purposes 
-      std::cout << "Frame size" << frame.size() << std::endl;
+      
     }
     
   }
-  
+  //Debug purposes 
+  std::cout << "No.images used" << imgpoints.size() << std::endl;
   cv::destroyAllWindows();
 
   cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
