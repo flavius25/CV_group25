@@ -49,7 +49,7 @@ int main() {
   iterationBody();
 
   cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
-  rmsRP_Error = cv::calibrateCamera(objectPointsGlobal, imagePointsGlobal, cv::Size(intRows, intCols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors);
+  rmsRP_Error = cv::calibrateCamera(objectPointsGlobal, imagePointsGlobal, cv::Size(intRows, intCols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
   //, CALIB_USE_INTRINSIC_GUESS|CALIB_FIX_PRINCIPAL_POINT
    
 
@@ -76,6 +76,16 @@ int main() {
 
 }
 
+void print(std::vector <int> const &a) {
+   std::cout << "The vector elements are : ";
+
+   for(int i=0; i < a.size(); i++){
+      std::cout << a.at(i) << ' ';
+   }
+   std::cout << std::endl;
+   
+}
+
 double iterationBody() {
 
   // Creating vector to store vectors of 3D points for each checkerboard image
@@ -89,7 +99,7 @@ double iterationBody() {
   for(int i{0}; i<CHECKERBOARD[1]; i++)
   {
     for(int j{0}; j<CHECKERBOARD[0]; j++)
-      objp.push_back(0.022*cv::Point3f(j,i,0));
+      objp.push_back(cv::Point3f(2.2 * j, 2.2 * i, 0));
   }
 
   // Extracting path of individual image stored in a given directory
@@ -121,8 +131,6 @@ double iterationBody() {
       //int down_width = 1280;
       //int down_height = 720;
       //Mat resized_up;
-
-      //resize(frame, resized_up, Size(down_width, down_height), INTER_LINEAR);
 
       cv::cvtColor(frame,gray,cv::COLOR_BGR2GRAY);
 
@@ -164,13 +172,16 @@ double iterationBody() {
     }
     
   }
+  
   //Debug purposes 
-  std::cout << "No.images used" << imgpoints.size() << std::endl;
+  std::cout << "No.images used : " << imgpoints.size() << std::endl;
   cv::destroyAllWindows();
 
-  cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
-  //std::vector <float> perViewErrors;
-  std::cout << typeid(perViewErrors).name() << std::endl;
+  cv::Mat cameraMatrix;
+  cameraMatrix = cv::initCameraMatrix2D(objpoints,imgpoints,cv::Size(gray.rows,gray.cols));
+  
+
+  cv::Mat distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
 
   /*
   * Performing camera calibration by 
@@ -180,13 +191,12 @@ double iterationBody() {
   */
 
   double rmsRP_Error;
-  rmsRP_Error = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors);
-  //CALIB_USE_INTRINSIC_GUESS|CALIB_FIX_PRINCIPAL_POINT
+  rmsRP_Error = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
+  //CALIB_USE_INTRINSIC_GUESS
 
+  //Transforming perViewErrors to vector, in order to get indices in next step
   cv::Mat flat = perViewErrors.reshape(1, perViewErrors.total()*perViewErrors.channels());
   std::vector<uchar> perViewErrorsVector = perViewErrors.isContinuous()? flat : flat.clone();
-
-  std::cout << typeid(perViewErrors).name() << std::endl;
 
   //Getting the index of the element with the most error, adding it to vector of image-indices to ignore
   int maxElementIndex = std::max_element(perViewErrorsVector.begin(), perViewErrorsVector.end()) - perViewErrorsVector.begin();
@@ -195,6 +205,7 @@ double iterationBody() {
   if(noImagesUsed - imagesToIgnore.size() == minImages) {
     maxIterationsReached = true;
   }
+  std::cout << maxIterationsReached << std::endl;
 
   //Assigning values to global variables so that cameraCalibration can be called outside scope of function
   objectPointsGlobal = objpoints;
@@ -204,5 +215,6 @@ double iterationBody() {
   
   std::cout << rmsRP_Error << std::endl;
   std::cout << imagesToIgnore.size() << std::endl;
+  print(imagesToIgnore);
   return rmsRP_Error;
 }
