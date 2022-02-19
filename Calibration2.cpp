@@ -154,13 +154,17 @@ double iterationBody() {
 
       cv::imshow("Image", frame);
       cv::waitKey(0);
-    }
-  }
 
+      //Debug purposes 
+      std::cout << "Frame size" << frame.size() << std::endl;
+    }
+    
+  }
+  
   cv::destroyAllWindows();
 
-  cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics;
-  std::vector <float> perViewErrors;
+  cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
+  //std::vector <float> perViewErrors;
   std::cout << typeid(perViewErrors).name() << std::endl;
 
   /*
@@ -174,11 +178,13 @@ double iterationBody() {
   rmsRP_Error = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors);
   //CALIB_USE_INTRINSIC_GUESS|CALIB_FIX_PRINCIPAL_POINT
 
+  cv::Mat flat = perViewErrors.reshape(1, perViewErrors.total()*perViewErrors.channels());
+  std::vector<uchar> perViewErrorsVector = perViewErrors.isContinuous()? flat : flat.clone();
 
   std::cout << typeid(perViewErrors).name() << std::endl;
 
   //Getting the index of the element with the most error, adding it to vector of image-indices to ignore
-  int maxElementIndex = std::max_element(perViewErrors.begin(), perViewErrors.end()) - perViewErrors.begin();
+  int maxElementIndex = std::max_element(perViewErrorsVector.begin(), perViewErrorsVector.end()) - perViewErrorsVector.begin();
   imagesToIgnore.push_back(maxElementIndex);
 
   if(noImagesUsed - imagesToIgnore.size() == minImages) {
@@ -190,6 +196,8 @@ double iterationBody() {
   imagePointsGlobal = imgpoints; 
   intRows = gray.rows;
   intCols = gray.cols;
-
+  
+  std::cout << rmsRP_Error << std::endl;
+  std::cout << imagesToIgnore.size() << std::endl;
   return rmsRP_Error;
 }
