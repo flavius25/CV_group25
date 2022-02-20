@@ -1,10 +1,6 @@
 
 #include <opencv2/opencv.hpp>
-//#include <opencv2/calib3d/calib3d.hpp>
-//#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-//#include <opencv2/core/core_c.h>
-//#include <opencv2/core/core.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 #include <stdio.h>
@@ -14,18 +10,13 @@
 #include <algorithm>
 #include<vector>
 
-//#define CV_CALIB_CB_ADAPTIVE_THRESH 1
-//#define CV_CALIB_CB_FAST_CHECK 8
-//#define CV_CALIB_CB_NORMALIZE_IMAGE 2
+using namespace cv;
 
 // Defining the dimensions of checkerboard
 int CHECKERBOARD[2]{6,9}; 
 
-using namespace cv;
-
-
-//Declaring function iterationBody()
-double iterationBody();
+//Declaring function iterativeCalibration()
+double iterativeCalibration();
 
 //Declaration of vector with images
 std::vector<cv::String> images;
@@ -33,14 +24,17 @@ std::vector<cv::String> images;
 //Global parameters for final calculation
 std::vector<std::vector<cv::Point3f>> objectPointsGlobal;
 std::vector<std::vector<cv::Point2f>> imagePointsGlobal;
+cv::Mat finalCameraMatrix; 
 int intRows;
 int intCols;
+
+//Global parameters used for calibration optimisation
 int noImagesUsed;
-cv::Mat finalCameraMatrix; 
 int minImages = 10;
 double epsilon = 0.284; 
 bool maxIterationsReached = false;
 bool iterationsDone = false;
+
 
 int main() {
   
@@ -50,17 +44,28 @@ int main() {
   cv::glob(path, images);
   noImagesUsed = images.size();
 
-  double rmsRP_Error = iterationBody();
+  //getting the first overall rms reprojection error
+  double rmsRP_Error = iterativeCalibration();
+
+  /*while the error is higher than a certain threshold value or maximum iterations as 
+  *specified by the minimum amount of images to consider has not been reached
+  *continue looping through and removing images with highest perViewError */
 
   while (rmsRP_Error >= epsilon && !maxIterationsReached){
-    rmsRP_Error = iterationBody();
+    rmsRP_Error = iterativeCalibration();
   }
-  iterationsDone = true;
-  iterationBody();
 
+  //set iterationsDone to true, go into iterativeCalibration again to print the images and get the final matrix
+  iterationsDone = true;
+  iterativeCalibration();
+
+
+  //initialise variables here and call function calibrateCamera again with the matrix and images obtained by optimisation
+  //done in order to be able to save the values in XML file
   cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
   rmsRP_Error = cv::calibrateCamera(objectPointsGlobal, imagePointsGlobal, cv::Size(intRows, intCols), finalCameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
 
+  //name of XML-file to store values
   std::string filename = "Params.xml";
 
   // Saving the parameters in an XML file
@@ -72,12 +77,6 @@ int main() {
   fs << "PerViewErrors" << perViewErrors;
   fs << "overallRMS_RPError" << rmsRP_Error; 
   fs.release();
-
-  std::cout << "cameraMatrix : "<< cameraMatrix << std::endl;
-  std::cout << "distCoeffs : " << distCoeffs << std::endl;
-  std::cout << "Rotation vector : " << R << std::endl;
-  std::cout << "Translation vector : " << T << std::endl;
-  std::cout << "Overall RMS projection errors : " << rmsRP_Error << std::endl;
 
   return 0;
 
@@ -105,7 +104,7 @@ void print(std::vector <float> const &a) {
 }
 
 void print(std::vector <cv::String> const &a) {
-   std::cout << "The vector elements are : ";
+  std::cout << "Images used for calibration : ";
 
    for(int i=0; i < a.size(); i++){
       std::cout << a.at(i) << ' ';
@@ -114,33 +113,15 @@ void print(std::vector <cv::String> const &a) {
    
 }
 
-/*Function to add zeros to index position of images to be ignored
-*This makes sure that the perViewErrorsVector is always equal to the amount of images used
-*which will make it possible to ignore the images that gives the highest perViewError even 
-*when the vector of perViewErrors is getting smaller
-print(images);
-*/
-//  std::vector<float> insertZeros(std::vector<float> vec){
-  
-//   std::vector<float> copyVector = vec;
-//   for(int i = 0; i<imagesToIgnore.size(); i++){
-    
-//       auto itPos = copyVector.begin() + (imagesToIgnore[i]+1);
-//       float zero = 0.0;
-//       copyVector.insert(itPos, zero);
-//   }
-//   return copyVector;
-// }
+double iterativeCalibration() {
 
-double iterationBody() {
-
-  // Creating vector to store vectors of 3D points for each checkerboard image
+  // Creating vector to store vectors of 3D points for each image
   std::vector<std::vector<cv::Point3f> > objpoints;
 
-  // Creating vector to store vectors of 2D points for each checkerboard image
+  // Creating vector to store vectors of 2D points for each image
   std::vector<std::vector<cv::Point2f> > imgpoints;
 
-  // Defining the world coordinates for 3D points
+  // Defining the world coordinates for 3D points, each point multiplied by size of each checker square in cm 
   std::vector<cv::Point3f> objp;
   for(int i{0}; i<CHECKERBOARD[1]; i++)
   {
@@ -148,12 +129,16 @@ double iterationBody() {
       objp.push_back(cv::Point3f(2.2 * j, 2.2 * i, 0));
   }
 
-  cv::Mat frame, gray;
-  // vector to store the pixel coordinates of detected checker board corners 
+  
+  
+  // vector to store the pixel coordinates of detected checker board corners
   std::vector<cv::Point2f> corner_pts;
-  bool success;
 
-  // Looping over all the images in the image list
+  //boolean and matrix initialised for finding the chessboard corners
+  bool success;
+  cv::Mat frame, gray;
+
+  // Looping over all the images in the image vector
   for(int i{0}; i<images.size(); i++)
   {
 
@@ -192,61 +177,59 @@ double iterationBody() {
     }
   }
   
-  //Debug purposes 
-  std::cout << "No.images used : " << imgpoints.size() << std::endl;
   cv::destroyAllWindows();
 
+  //intialise camera matrix, if iterations are not done, initialise matrix with help of initCameraMatrix2D function
+  //else use the precalculated matrix from previous iterations
   cv::Mat cameraMatrix;
   if (!iterationsDone){
-  //Finding initial values for cameraMatrix to pass to calibrateCamera function
-  
   cameraMatrix = cv::initCameraMatrix2D(objpoints,imgpoints,cv::Size(gray.rows,gray.cols));
   }
   else {
     cameraMatrix = finalCameraMatrix;
   }
+
+  //initialise matrices for storing values obtained from calibrateCamera function
   cv::Mat distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
 
   /*
   * Performing camera calibration by 
   * passing the value of known 3D points (objpoints)
   * and corresponding pixel coordinates of the 
-  * detected corners (imgpoints)
+  * detected corners (imgpoints).
+  * Use flag CALIB_USE_INTRINSIC_GUESS in order to estimate image center not from resolution
   */
 
   double rmsRP_Error;
   rmsRP_Error = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
   
-  std::cout << "rmsPError 1 : " << rmsRP_Error << std::endl;
  
-  //if maximum iterations are not reached (number of images to consider is still above the minimum), consider which image has the highest perViewError and remove it from images to consider
+  //if overall reprojection error is still above certain threshold and minimum images to consider has not yet been reached:
+  //consider which image has the highest perViewError and remove it from images list
   if (rmsRP_Error > epsilon){
     if (!maxIterationsReached){
-    //converting to vector of floats
+
+    //converting perViewError to vector of floats in order to obtain indices easier
     std::vector<float> perViewErrorsVector;
     perViewErrorsVector.assign(perViewErrors.begin<float>(), perViewErrors.end<float>());
     
-    //Debugging purposes
-    print(perViewErrorsVector);
-
-    //Getting the index of the element with the most error, adding it to vector of image-indices to ignore
+    //Getting the index of the element with the most error, removing the image of index from image list
     int maxElementIndex = std::max_element(perViewErrorsVector.begin(), perViewErrorsVector.end()) - perViewErrorsVector.begin();
-    // Deletes the second element (vec[1])
-    std::cout << "Erasing image at position " << maxElementIndex << std::endl;
     images.erase(images.begin() + maxElementIndex);
-    std::cout << "Images size after removing 1 image: " << images.size() << std::endl;
     noImagesUsed = images.size();
+
     }
   }
+  //assign intrinsic camera matrix K to global variable 
   else{
+
     finalCameraMatrix = cameraMatrix;
   }
 
-
+  //check if number of images in image list is equal to minimum number to consider, if so maximum iterations have been reached
   if(noImagesUsed == minImages) {
     maxIterationsReached = true;
   }
-  std::cout << maxIterationsReached << std::endl;
 
   if (iterationsDone){
   //Assigning values to global variables so that cameraCalibration can be called outside scope of function
@@ -255,8 +238,13 @@ double iterationBody() {
   intRows = gray.rows;
   intCols = gray.cols;
   finalCameraMatrix = cameraMatrix;
+
+  //print which images that are used for the final calibration 
+  print(images);
   }
   
-  std::cout << "rmsPError 2  : " << rmsRP_Error << std::endl;
+  //print the rms reprojection error for each iteration
+  std::cout << "Overall RMS Reprojection Error : " << rmsRP_Error << std::endl;
+
   return rmsRP_Error;
 }
