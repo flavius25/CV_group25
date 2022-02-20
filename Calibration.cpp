@@ -62,7 +62,7 @@ int main() {
 
   //initialise variables here and call function calibrateCamera again with the matrix and images obtained by optimisation
   //done in order to be able to save the values in XML file
-  cv::Mat cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
+  cv::Mat distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
   rmsRP_Error = cv::calibrateCamera(objectPointsGlobal, imagePointsGlobal, cv::Size(intRows, intCols), finalCameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
 
   //name of XML-file to store values
@@ -70,7 +70,7 @@ int main() {
 
   // Saving the parameters in an XML file
   cv::FileStorage fs (filename, FileStorage:: WRITE); 
-  fs << "cameraMatrix" << cameraMatrix;
+  fs << "cameraMatrix" << finalCameraMatrix;
   fs << "distCoeffs" << distCoeffs;
   fs << "Rotation_vector" << R;
   fs << "Translation_vector" << T;
@@ -82,27 +82,8 @@ int main() {
 
 }
 
-//Debugging purposes functions to print elements in vector 
-void print(std::vector <int> const &a) {
-   std::cout << "The vector elements are : ";
 
-   for(int i=0; i < a.size(); i++){
-      std::cout << a.at(i) << ' ';
-   }
-   std::cout << std::endl;
-   
-}
-
-void print(std::vector <float> const &a) {
-   std::cout << "The vector elements are : ";
-
-   for(int i=0; i < a.size(); i++){
-      std::cout << a.at(i) << ' ';
-   }
-   std::cout << std::endl;
-   
-}
-
+//function to print elements of image vector
 void print(std::vector <cv::String> const &a) {
   std::cout << "Images used for calibration : ";
 
@@ -129,7 +110,6 @@ double iterativeCalibration() {
       objp.push_back(cv::Point3f(2.2 * j, 2.2 * i, 0));
   }
 
-  
   
   // vector to store the pixel coordinates of detected checker board corners
   std::vector<cv::Point2f> corner_pts;
