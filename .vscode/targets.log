@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Feb 18 12:35:30 2022
+# Make data base, printed on Sun Feb 20 08:11:18 2022
 
 # Variables
 
@@ -25,7 +25,7 @@ DESKTOP_SESSION = ubuntu
 # environment
 XDG_SESSION_CLASS = user
 # makefile (from 'Makefile', line 4)
-SRC = Calibration2.cpp
+SRC = Calibration.cpp
 # environment
 SNAP_COMMON = /var/snap/code/common
 # environment
@@ -53,7 +53,7 @@ VTE_VERSION = 6003
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-gb","availableLanguages":{},"_languagePackSupport":true}
 # environment
-JOURNAL_STREAM = 8:56002
+JOURNAL_STREAM = 8:51182
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # environment
@@ -79,7 +79,7 @@ DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-MANAGERPID = 1622
+MANAGERPID = 1755
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # environment
@@ -95,7 +95,7 @@ PATH = /home/annadollbo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-SESSION_MANAGER = local/annadollbo:@/tmp/.ICE-unix/1901,unix/annadollbo:/tmp/.ICE-unix/1901
+SESSION_MANAGER = local/annadollbo:@/tmp/.ICE-unix/2048,unix/annadollbo:/tmp/.ICE-unix/2048
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -115,7 +115,7 @@ DISABLE_WAYLAND = 1
 # environment
 VSCODE_CRASH_REPORTER_START_OPTIONS = {"companyName":"Microsoft","productName":"VSCode","submitURL":"appcenter://code?aid=fba07a4d-84bd-4fc8-a125-9640fc8ce171&uid=ec8c86ce-e72b-46fb-a3cd-69269091345d&iid=ec8c86ce-e72b-46fb-a3cd-69269091345d&sid=ec8c86ce-e72b-46fb-a3cd-69269091345d","uploadToServer":true}
 # environment
-INVOCATION_ID = db5ab1fc9e564d65993addba483721b4
+INVOCATION_ID = ce743a6a84904c019d55ca65a77cd9ef
 # environment
 GDK_PIXBUF_MODULEDIR = /snap/code/88/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders
 # default
@@ -139,7 +139,7 @@ PWD = /home/annadollbo/Documents/ComputerVision/CV_group25
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 1840
+SSH_AGENT_PID = 1988
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -195,7 +195,7 @@ CC = "g++"
 # environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-95e00ff9-09ce-4ac6-948e-87235602e7df.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-87976400-be10-491a-9955-0faa0e44f5fc.sock
 # default
 MAKE_VERSION := 4.2.1
 # environment
@@ -261,11 +261,11 @@ LC_ALL = C
 # makefile (from 'Makefile', line 6)
 LIBS = `pkg-config --cflags --libs opencv4`
 # environment
-GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/84661d33_751f_4e10_9b86_30b2da7cd947
+GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/e022fe30_a385_447a_8d70_1f51dba263ef
 # automatic
 ^F = $(notdir $^)
 # environment
-GNOME_TERMINAL_SERVICE = :1.116
+GNOME_TERMINAL_SERVICE = :1.161
 # default
 SUFFIXES := 
 # environment
@@ -277,6 +277,9 @@ WINDOWPATH = 2
 # default
 .INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
 # environment
+ 
+make: *** No rule to make target 'all'.  Stop.
+ 
 LC_IDENTIFICATION = nl_NL.UTF-8
 # default
 .RECIPEPREFIX := 
@@ -287,12 +290,9 @@ LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 7844
+VSCODE_PID = 6550
 # variable set hash-table stats:
 # Load=139/1024=14%, Rehash=0, Collisions=20/166=12%
- 
-make: *** No rule to make target 'all'.  Stop.
- 
 
 # Pattern-specific Variable Values
 
@@ -320,9 +320,15 @@ all:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-02-17 13:53:18.258645672
+#  Last modified 2022-02-20 08:08:40.701590783
 #  File has been updated.
 #  Successfully updated.
+
+# Not a target:
+Calibration.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
 
 # Not a target:
 .DEFAULT:
@@ -330,13 +336,7 @@ Makefile:
 #  Modification time never checked.
 #  File has not been updated.
 
-# Not a target:
-Calibration2.cpp:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-
-output: Calibration2.cpp
+output: Calibration.cpp
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -357,6 +357,6 @@ output: Calibration2.cpp
 # strcache performance: lookups = 25 / hit rate = 28%
 # hash-table stats:
 # Load=18/8192=0%, Rehash=0, Collisions=1/25=4%
-# Finished Make data base on Fri Feb 18 12:35:30 2022
+# Finished Make data base on Sun Feb 20 08:11:18 2022
 
  

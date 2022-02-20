@@ -4,8 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/include/opencv4/**",
-                "/usr/local/include/opencv4"
+                "/usr/local/include/opencv4/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
@@ -13,7 +12,9 @@
             "cppStandard": "gnu++14",
             "intelliSenseMode": "linux-gcc-x64",
             "configurationProvider": "ms-vscode.makefile-tools",
-            "forcedInclude": [],
+            "forcedInclude": [
+                "/usr/local/include/opencv4/opencv2/highgui.hpp"
+            ],
             "mergeConfigurations": true
         }
     ],

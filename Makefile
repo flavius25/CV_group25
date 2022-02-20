@@ -1,7 +1,7 @@
 CC = "g++"
 
 PROJECT = output
-SRC = Calibration2.cpp
+SRC = Calibration.cpp
 
 LIBS = `pkg-config --cflags --libs opencv4`
 	

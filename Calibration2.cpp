@@ -79,6 +79,7 @@ int main() {
 
 }
 
+//Debugging purposes functions to print elements in vector 
 void print(std::vector <int> const &a) {
    std::cout << "The vector elements are : ";
 
@@ -99,21 +100,6 @@ void print(std::vector <float> const &a) {
    
 }
 
-// int getIndex(std::vector<cv::String> v, int K)
-// {
-//     auto it = find(v.begin(), v.end(), K);
- 
-//     // If element was found
-//     if (it != v.end())
-//     {
-     
-//         // calculating the index
-//         // of K
-//         int index = it - v.begin();
-//         return index;
-//     }
-// }
-
 
 /*Function to add zeros to index position of images to be ignored
 *This makes sure that the perViewErrorsVector is always equal to the amount of images used
@@ -122,14 +108,15 @@ void print(std::vector <float> const &a) {
 
 */
  std::vector<float> insertZeros(std::vector<float> vec){
-
-  for(int i{0}; i<imagesToIgnore.size(); i++){
+  
+  std::vector<float> copyVector = vec;
+  for(int i = 0; i<imagesToIgnore.size(); i++){
     
-      auto itPos = vec.begin() + imagesToIgnore[i];
+      auto itPos = copyVector.begin() + (imagesToIgnore[i]+1);
       float zero = 0.0;
-      vec.insert(itPos, zero);
+      copyVector.insert(itPos, zero);
   }
-  return vec;
+  return copyVector;
 }
 
 double iterationBody() {
@@ -240,18 +227,15 @@ double iterationBody() {
   rmsRP_Error = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
   //CALIB_USE_INTRINSIC_GUESS
 
-  //Transforming perViewErrors to vector, in order to get indices in next step
-  // cv::Mat flat = perViewErrors.reshape(1, perViewErrors.total()*perViewErrors.channels());
-  // std::vector<uchar> perViewErrorsVector = perViewErrors.isContinuous()? flat : flat.clone();
-
+  //converting to vector of floats
   std::vector<float> perViewErrorsVector;
-  //cv::Mat res(m, n, CV_32FC1);
   perViewErrorsVector.assign(perViewErrors.begin<float>(), perViewErrors.end<float>());
   
 
-  //Passing vector to function "___" to make sure that index taken in next step correspond to index of image in original array used
+  //Passing vector to function insertZeros to make sure that index taken in next step correspond to index of image in original array used
   perViewErrorsVector = insertZeros(perViewErrorsVector);
   print(perViewErrorsVector);
+  std::cout << perViewErrorsVector.size() << std::endl;
 
   //Getting the index of the element with the most error, adding it to vector of image-indices to ignore
   int maxElementIndex = std::max_element(perViewErrorsVector.begin(), perViewErrorsVector.end()) - perViewErrorsVector.begin();
@@ -271,7 +255,6 @@ double iterationBody() {
   intCols = gray.cols;
   
   std::cout << rmsRP_Error << std::endl;
-  std::cout << imagesToIgnore.size() << std::endl;
   print(imagesToIgnore);
   return rmsRP_Error;
 }
