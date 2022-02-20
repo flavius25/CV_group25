@@ -4,11 +4,6 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 #include <stdio.h>
-//#include <iostream>
-//#include <typeinfo>
-//#include <iterator>
-//#include <algorithm>
-//#include <vector>
 
 using namespace cv;
 using namespace std;
@@ -43,7 +38,7 @@ std::vector<cv::Point2f> corner_pts; // vector to store the pixel coordinates of
 //Global parameters used for calibration optimisation
 int noImagesUsed;
 int minImages = 10;
-double epsilon = 0.284; 
+double epsilon = 0.21; 
 bool maxIterationsReached = false;
 bool iterationsDone = false;
 
@@ -54,8 +49,8 @@ enum class func
     camera_performance
 };
 
-func choose_function = func::camera_performance;    //switch to online_images or camera_performance here 
-bool edge_enhancing = false;                        //swith to true to activate edge enhancing.
+func choose_function = func::online_images;    //switch to online_images or camera_performance here 
+bool edge_enhancing = false;                   //swith to true to activate edge enhancing.
 
 int main() {
   
@@ -78,7 +73,6 @@ int main() {
   //set iterationsDone to true, go into iterativeCalibration again to print the images and get the final matrix
   iterationsDone = true;
   iterativeCalibration();
-
 
   //initialise variables here and call function calibrateCamera again with the matrix and images obtained by optimisation
   //done in order to be able to save the values in XML file
@@ -307,7 +301,6 @@ int main() {
 
 }
 
-
 //function to print elements of image vector
 void print(std::vector <cv::String> const &a) {
   std::cout << "Images used for calibration : " << '\n';
@@ -340,7 +333,6 @@ double iterativeCalibration() {
 
       width_image = frame.size().width;  
       height_image = frame.size().height;
-
 
       if (edge_enhancing) {
           //edge enhacement ->applying a median filter to preserve edges
@@ -459,7 +451,6 @@ double iterativeCalibration() {
 
     //converting perViewError to vector of floats in order to obtain indices easier
     std::vector<float> perViewErrorsVector = perViewErrors;
-    //perViewErrorsVector.assign(perViewErrors.begin<float>(), perViewErrors.end<float>());
     
     //Getting the index of the element with the most error, removing the image of index from image list
     int maxElementIndex = std::max_element(perViewErrorsVector.begin(), perViewErrorsVector.end()) - perViewErrorsVector.begin();
@@ -477,6 +468,7 @@ double iterativeCalibration() {
   //check if number of images in image list is equal to minimum number to consider, if so maximum iterations have been reached
   if(noImagesUsed == minImages) {
     maxIterationsReached = true;
+    iterationsDone = true;
   }
 
   if (iterationsDone){
