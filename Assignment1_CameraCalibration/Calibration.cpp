@@ -29,12 +29,11 @@ std::vector<std::vector<cv::Point2f>> imagePointsGlobal;
 cv::Mat finalCameraMatrix;
 int intRows;
 int intCols;
-int width;
-int height;
+int width_image;
+int height_image;
 
 //Global parameters for online stage
 cv::Mat frame, gray; //use for offline stage
-bool found = false;
 bool success;
 const string x = "X"; //label x for line 
 const string y = "Y"; //label y for line
@@ -55,8 +54,8 @@ enum class func
     camera_performance
 };
 
-func choose_function = func::online_images;    //switch to online, offline, camera from here 
-bool edge_enhancing = false;                   //false by default, swith to true, to activate.
+func choose_function = func::camera_performance;    //switch to online_images or camera_performance here 
+bool edge_enhancing = false;                        //swith to true to activate edge enhancing.
 
 int main() {
   
@@ -72,7 +71,6 @@ int main() {
   /*while the error is higher than a certain threshold value or maximum iterations as 
   *specified by the minimum amount of images to consider has not been reached
   *continue looping through and removing images with highest perViewError */
-
   while (rmsRP_Error >= epsilon && !maxIterationsReached){
     rmsRP_Error = iterativeCalibration();
   }
@@ -86,8 +84,6 @@ int main() {
   //done in order to be able to save the values in XML file
   cv::Mat distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
   rmsRP_Error = cv::calibrateCamera(objectPointsGlobal, imagePointsGlobal, cv::Size(intRows, intCols), finalCameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
-  //Mat cameraMatrix_Fin;
-  //cv::calibrateCamera(objectPointsGlobal, imagePointsGlobal, cv::Size(intRows, intCols), cameraMatrix_Fin, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
   
   if (choose_function == func::online_images) {
       
@@ -96,6 +92,7 @@ int main() {
 	  vector<Point3f>  objectPoints_imag;
       vector<Point3d> point3D;
       vector<Point2d> point2D;
+      bool found = false;
       std::vector<cv::Point2f> corners1; //used for storing projectedPoints
 
 
@@ -194,14 +191,14 @@ int main() {
 
   else if(choose_function == func::camera_performance){
   
+    VideoCapture capture(0); //for when camera is on
     cv::Mat view, Img; 
     Size patternSize(CHECKERBOARD[1], CHECKERBOARD[0]);
     vector<Point3f>  objectPoints_cam;
     vector<Point3d> point3D;
     vector<Point2d> point2D;
     std::vector<cv::Point2f> corners1; //used for storing projectedPoints for online stage
-    VideoCapture capture(0); //for when camera is on
-
+    bool found = false;
 
     for (int j = 0; j < patternSize.height;j++)
     {
@@ -225,14 +222,6 @@ int main() {
 
     while (1)
     {
-
-	  for (int j = 0; j < patternSize.height;j++)
-	  {
-		  for (int i = 0; i < patternSize.width;i++)
-		  {
-			  objectPoints_cam.push_back(Point3f(i * BoardBoxSize, j * BoardBoxSize, 0));
-		  }
-	  }
 
   	  capture >> view;
 
@@ -292,7 +281,7 @@ int main() {
   	}
 
   	// Display image.
-  	cv::imshow("Output", view);
+  	cv::imshow("CameraPerformance", view);
   	cv::waitKey(1);
   }
   cv::destroyAllWindows();
@@ -304,8 +293,8 @@ int main() {
 
   // Saving the parameters in an XML file
   cv::FileStorage fs (filename, FileStorage:: WRITE);
-  fs << "width" << width;
-  fs << "height" << height;
+  fs << "width" << width_image;
+  fs << "height" << height_image;
   fs << "cameraMatrix" << finalCameraMatrix;
   fs << "distCoeffs" << distCoeffs;
   fs << "Rotation_vector" << R;
@@ -349,12 +338,12 @@ double iterativeCalibration() {
 
       frame = cv::imread(images[i]);
 
-      width = frame.size().width;
-      height = frame.size().height;
+      width_image = frame.size().width;  
+      height_image = frame.size().height;
 
 
       if (edge_enhancing) {
-          //edge enhacement
+          //edge enhacement ->applying a median filter to preserve edges
           //local variables needed for filtering
           Mat img_blur, gray_enhanced;
           std::vector<cv::Point2f> corner_pts_edge_enh;
@@ -398,8 +387,8 @@ double iterativeCalibration() {
               imgpoints.push_back(corner_pts_edge_enh);
           }
 
-          //cv::imshow("Image", copyf);
-          //cv::waitKey(0);
+          //cv::imshow("Image", copyf);  //uncomment this if you want to plot the circles
+          //cv::waitKey(1);
 
           cv::destroyAllWindows();
       }
