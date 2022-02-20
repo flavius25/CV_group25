@@ -38,7 +38,7 @@ int intCols;
 int noImagesUsed;
 cv::Mat finalCameraMatrix; 
 int minImages = 10;
-float epsilon = 0.27; 
+double epsilon = 0.284; 
 bool maxIterationsReached = false;
 bool iterationsDone = false;
 
@@ -196,10 +196,15 @@ double iterationBody() {
   std::cout << "No.images used : " << imgpoints.size() << std::endl;
   cv::destroyAllWindows();
 
-  //Finding initial values for cameraMatrix to pass to calibrateCamera function
   cv::Mat cameraMatrix;
+  if (!iterationsDone){
+  //Finding initial values for cameraMatrix to pass to calibrateCamera function
+  
   cameraMatrix = cv::initCameraMatrix2D(objpoints,imgpoints,cv::Size(gray.rows,gray.cols));
-
+  }
+  else {
+    cameraMatrix = finalCameraMatrix;
+  }
   cv::Mat distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
 
   /*
@@ -211,10 +216,12 @@ double iterationBody() {
 
   double rmsRP_Error;
   rmsRP_Error = cv::calibrateCamera(objpoints, imgpoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T, stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors, CALIB_USE_INTRINSIC_GUESS);
-
-  //if maximum iterations are not reached (number of images to consider is still above the minimum), consider which image has the highest perViewError and remove it from images to consider
-  if (!maxIterationsReached && rmsRP_Error > epsilon){
   
+  std::cout << "rmsPError 1 : " << rmsRP_Error << std::endl;
+ 
+  //if maximum iterations are not reached (number of images to consider is still above the minimum), consider which image has the highest perViewError and remove it from images to consider
+  if (rmsRP_Error > epsilon){
+    if (!maxIterationsReached){
     //converting to vector of floats
     std::vector<float> perViewErrorsVector;
     perViewErrorsVector.assign(perViewErrors.begin<float>(), perViewErrors.end<float>());
@@ -229,9 +236,12 @@ double iterationBody() {
     images.erase(images.begin() + maxElementIndex);
     std::cout << "Images size after removing 1 image: " << images.size() << std::endl;
     noImagesUsed = images.size();
+    }
   }
-  
-  std::cout << "Value of variable noImagesUsed " << noImagesUsed << std::endl;
+  else{
+    finalCameraMatrix = cameraMatrix;
+  }
+
 
   if(noImagesUsed == minImages) {
     maxIterationsReached = true;
@@ -247,6 +257,6 @@ double iterationBody() {
   finalCameraMatrix = cameraMatrix;
   }
   
-  std::cout << rmsRP_Error << std::endl;
+  std::cout << "rmsPError 2  : " << rmsRP_Error << std::endl;
   return rmsRP_Error;
 }
