@@ -1,7 +1,7 @@
 CC = "g++"
 
 PROJECT = output
-SRC = CalibrationAssig2.cpp
+SRC = BackgroundBlending.cpp
 
 LIBS = `pkg-config --cflags --libs opencv4`
 	
