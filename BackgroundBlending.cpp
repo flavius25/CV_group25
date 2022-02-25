@@ -8,38 +8,41 @@ using namespace cv;
 
 int main( void )
 {
-  //Declaration of vector with images
-  std::vector<cv::String> images;
 
-  // Path of the folder containing checkerboard images
-  std::string path = "./cam1/background_images/*.png";
+  for (int i{1}; i<5; i++){
+    // Path of the folder containing checkerboard images
+    String number = std::to_string(i);
+    std::string path = "./cam" + number + "/background_images/*.png";
+    //Declaration of vector with images
+    std::vector<cv::String> images;
 
-  cv::glob(path, images);
+    cv::glob(path, images);
 
-  std::vector<cv::Mat> image_matrices;
-  for (int i{0}; i < images.size(); i++){
-    cv::Mat this_image = imread(images[i]);
-    image_matrices.push_back(this_image);
-  }
+    std::vector<cv::Mat> image_matrices;
 
-  cv::Mat dst;
-  cv::Mat mean_img = image_matrices[0];
-  for (int i{0}; i < image_matrices.size(); i++){
-    if (i == 0){
-      continue;
+    for (int i{0}; i < images.size(); i++){
+      cv::Mat this_image = imread(images[i]);
+      image_matrices.push_back(this_image);
     }
-    else {
-      double alpha = 0.5;
-      double beta = (1.0 - alpha);
-      addWeighted(image_matrices[i], alpha, mean_img, beta, 0.0, dst);
-    }
-  }
 
-  imwrite("background.png", mean_img);
-  imread("background.png");
-  imshow("This window", dst);
-  waitKey(0);
-  return 0;
+    cv::Mat dst;
+    cv::Mat mean_img = image_matrices[0];
+    for (int i{0}; i < image_matrices.size(); i++){
+      if (i == 0){
+        continue;
+      }
+      else {
+        double alpha = 0.5;
+        double beta = (1.0 - alpha);
+        addWeighted(image_matrices[i], alpha, mean_img, beta, 0.0, dst);
+      }
+    }
+
+    imwrite("./cam" + number + "/background.png", mean_img);
+    imshow("Background camera " + number, dst);
+    waitKey(0);
+  }
+    return 0;
 
 }
 
