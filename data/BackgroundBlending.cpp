@@ -5,9 +5,6 @@
 
 using namespace cv;
 
-// using std::cin;
-// using std::cout;
-// using std::endl;
 
 int main( void )
 {
@@ -38,8 +35,8 @@ int main( void )
     }
   }
 
-  imwrite("test.png", mean_img);
-  imread("test.png");
+  imwrite("background.png", mean_img);
+  imread("background.png");
   imshow("This window", dst);
   waitKey(0);
   return 0;
