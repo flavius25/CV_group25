@@ -25,6 +25,7 @@ find_package(OpenGL 1 REQUIRED)
 find_package(OpenCV 2.4 COMPONENTS core highgui imgproc calib3d REQUIRED)
 find_package(OpenMP)
 
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${OpenMP_C_FLAGS}")
 

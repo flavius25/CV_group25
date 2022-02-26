@@ -1,7 +1,7 @@
 CC = "g++"
 
 PROJECT = output
-SRC = BackgroundBlending.cpp
+SRC = VoxelReconstruction.cpp
 
 LIBS = `pkg-config --cflags --libs opencv4`
 	
