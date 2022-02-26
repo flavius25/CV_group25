@@ -1,7 +1,7 @@
 CC = "g++"
 
 PROJECT = output
-SRC = main.cpp
+SRC = VoxelReconstruction.cpp
 
 LIBS = `pkg-config --cflags --libs opencv4`
 	
