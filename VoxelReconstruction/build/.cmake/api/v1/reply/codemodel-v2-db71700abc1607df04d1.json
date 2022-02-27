@@ -48,7 +48,7 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build",
+		"build" : "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build",
 		"source" : "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction"
 	},
 	"version" : 

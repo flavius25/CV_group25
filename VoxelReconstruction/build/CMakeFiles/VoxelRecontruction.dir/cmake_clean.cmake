@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction"
-  "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction.pdb"
+  "../Debug/VoxelRecontruction"
+  "../Debug/VoxelRecontruction.pdb"
   "CMakeFiles/VoxelRecontruction.dir/src/VoxelReconstruction.cpp.o"
   "CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.o"
   "CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.o"

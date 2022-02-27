@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

@@ -3,7 +3,7 @@
 
 # Relative path conversion top directories.
 set(CMAKE_RELATIVE_PATH_TOP_SOURCE "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction")
-set(CMAKE_RELATIVE_PATH_TOP_BINARY "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build")
+set(CMAKE_RELATIVE_PATH_TOP_BINARY "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build")
 
 # Force unix paths in dependencies.
 set(CMAKE_FORCE_UNIX_PATHS 1)

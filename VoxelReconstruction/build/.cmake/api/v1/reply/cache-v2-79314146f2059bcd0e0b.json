@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build"
+			"value" : "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -1603,7 +1603,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build"
+			"value" : "/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build"
 		},
 		{
 			"name" : "VoxelRecontruction_SOURCE_DIR",

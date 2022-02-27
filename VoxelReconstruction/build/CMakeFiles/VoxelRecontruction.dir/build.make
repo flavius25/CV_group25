@@ -46,7 +46,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build
+CMAKE_BINARY_DIR = /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/VoxelRecontruction.dir/depend.make
@@ -58,8 +58,8 @@ include CMakeFiles/VoxelRecontruction.dir/progress.make
 include CMakeFiles/VoxelRecontruction.dir/flags.make
 
 CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.o: CMakeFiles/VoxelRecontruction.dir/flags.make
-CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.o: /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/arcball.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.o"
+CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.o: ../src/controllers/arcball.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.o"
 	/bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.o -c /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/arcball.cpp
 
 CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.i: cmake_force
@@ -71,8 +71,8 @@ CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.s: cmake_force
 	/bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/arcball.cpp -o CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.s
 
 CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.o: CMakeFiles/VoxelRecontruction.dir/flags.make
-CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.o: /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Camera.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.o"
+CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.o: ../src/controllers/Camera.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.o"
 	/bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.o -c /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Camera.cpp
 
 CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.i: cmake_force
@@ -84,8 +84,8 @@ CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.s: cmake_force
 	/bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Camera.cpp -o CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.s
 
 CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.o: CMakeFiles/VoxelRecontruction.dir/flags.make
-CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.o: /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Glut.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.o"
+CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.o: ../src/controllers/Glut.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.o"
 	/bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.o -c /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Glut.cpp
 
 CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.i: cmake_force
@@ -97,8 +97,8 @@ CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.s: cmake_force
 	/bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Glut.cpp -o CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.s
 
 CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.o: CMakeFiles/VoxelRecontruction.dir/flags.make
-CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.o: /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Reconstructor.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.o"
+CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.o: ../src/controllers/Reconstructor.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.o"
 	/bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.o -c /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Reconstructor.cpp
 
 CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.i: cmake_force
@@ -110,8 +110,8 @@ CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.s: cmake_for
 	/bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Reconstructor.cpp -o CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.s
 
 CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.o: CMakeFiles/VoxelRecontruction.dir/flags.make
-CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.o: /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Scene3DRenderer.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.o"
+CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.o: ../src/controllers/Scene3DRenderer.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.o"
 	/bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.o -c /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Scene3DRenderer.cpp
 
 CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.i: cmake_force
@@ -123,8 +123,8 @@ CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.s: cmake_f
 	/bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Scene3DRenderer.cpp -o CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.s
 
 CMakeFiles/VoxelRecontruction.dir/src/main.cpp.o: CMakeFiles/VoxelRecontruction.dir/flags.make
-CMakeFiles/VoxelRecontruction.dir/src/main.cpp.o: /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/main.cpp.o"
+CMakeFiles/VoxelRecontruction.dir/src/main.cpp.o: ../src/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/main.cpp.o"
 	/bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/VoxelRecontruction.dir/src/main.cpp.o -c /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/main.cpp
 
 CMakeFiles/VoxelRecontruction.dir/src/main.cpp.i: cmake_force
@@ -136,8 +136,8 @@ CMakeFiles/VoxelRecontruction.dir/src/main.cpp.s: cmake_force
 	/bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/main.cpp -o CMakeFiles/VoxelRecontruction.dir/src/main.cpp.s
 
 CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.o: CMakeFiles/VoxelRecontruction.dir/flags.make
-CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.o: /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/utilities/General.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.o"
+CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.o: ../src/utilities/General.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.o"
 	/bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.o -c /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/utilities/General.cpp
 
 CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.i: cmake_force
@@ -149,8 +149,8 @@ CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.s: cmake_force
 	/bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/utilities/General.cpp -o CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.s
 
 CMakeFiles/VoxelRecontruction.dir/src/VoxelReconstruction.cpp.o: CMakeFiles/VoxelRecontruction.dir/flags.make
-CMakeFiles/VoxelRecontruction.dir/src/VoxelReconstruction.cpp.o: /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/VoxelReconstruction.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/VoxelReconstruction.cpp.o"
+CMakeFiles/VoxelRecontruction.dir/src/VoxelReconstruction.cpp.o: ../src/VoxelReconstruction.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/VoxelRecontruction.dir/src/VoxelReconstruction.cpp.o"
 	/bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/VoxelRecontruction.dir/src/VoxelReconstruction.cpp.o -c /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/VoxelReconstruction.cpp
 
 CMakeFiles/VoxelRecontruction.dir/src/VoxelReconstruction.cpp.i: cmake_force
@@ -175,40 +175,40 @@ VoxelRecontruction_OBJECTS = \
 # External object files for target VoxelRecontruction
 VoxelRecontruction_EXTERNAL_OBJECTS =
 
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.o
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.o
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.o
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.o
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.o
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/main.cpp.o
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.o
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/VoxelReconstruction.cpp.o
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/build.make
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/lib/x86_64-linux-gnu/libGL.so
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/lib/x86_64-linux-gnu/libGLU.so
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/lib/x86_64-linux-gnu/libglut.so
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/lib/x86_64-linux-gnu/libXi.so
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_gapi.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_highgui.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_ml.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_objdetect.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_photo.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_stitching.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_video.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_videoio.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_imgcodecs.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_dnn.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_calib3d.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_features2d.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_flann.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_imgproc.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: /usr/local/lib/libopencv_core.so.4.5.5
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction"
+../Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/controllers/arcball.cpp.o
+../Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/controllers/Camera.cpp.o
+../Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/controllers/Glut.cpp.o
+../Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/controllers/Reconstructor.cpp.o
+../Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/controllers/Scene3DRenderer.cpp.o
+../Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/main.cpp.o
+../Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/utilities/General.cpp.o
+../Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/src/VoxelReconstruction.cpp.o
+../Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/build.make
+../Debug/VoxelRecontruction: /usr/lib/x86_64-linux-gnu/libGL.so
+../Debug/VoxelRecontruction: /usr/lib/x86_64-linux-gnu/libGLU.so
+../Debug/VoxelRecontruction: /usr/lib/x86_64-linux-gnu/libglut.so
+../Debug/VoxelRecontruction: /usr/lib/x86_64-linux-gnu/libXi.so
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_gapi.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_highgui.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_ml.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_objdetect.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_photo.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_stitching.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_video.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_videoio.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_imgcodecs.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_dnn.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_calib3d.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_features2d.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_flann.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_imgproc.so.4.5.5
+../Debug/VoxelRecontruction: /usr/local/lib/libopencv_core.so.4.5.5
+../Debug/VoxelRecontruction: CMakeFiles/VoxelRecontruction.dir/link.txt
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable ../Debug/VoxelRecontruction"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/VoxelRecontruction.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
-CMakeFiles/VoxelRecontruction.dir/build: /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/Debug/VoxelRecontruction
+CMakeFiles/VoxelRecontruction.dir/build: ../Debug/VoxelRecontruction
 
 .PHONY : CMakeFiles/VoxelRecontruction.dir/build
 
@@ -217,6 +217,6 @@ CMakeFiles/VoxelRecontruction.dir/clean:
 .PHONY : CMakeFiles/VoxelRecontruction.dir/clean
 
 CMakeFiles/VoxelRecontruction.dir/depend:
-	cd /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/build/CMakeFiles/VoxelRecontruction.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles/VoxelRecontruction.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/VoxelRecontruction.dir/depend
 
