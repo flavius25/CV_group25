@@ -81,8 +81,8 @@ int main() {
 
     // Saving the parameters in an XML file
     cv::FileStorage fs (filename, FileStorage:: WRITE); 
-    fs << "cameraMatrix" << finalCameraMatrix;
-    fs << "distCoeffs" << distCoeffs;
+    fs << "CameraMatrix" << finalCameraMatrix;
+    fs << "DistortionCoeffs" << distCoeffs;
     fs.release();
   }
 

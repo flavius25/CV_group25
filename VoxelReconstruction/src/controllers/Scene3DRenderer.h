@@ -8,7 +8,7 @@
 #ifndef SCENE3DRENDERER_H_
 #define SCENE3DRENDERER_H_
 
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 #include <opencv2/core/operations.hpp>
 #include <vector>
 #ifdef _WIN32
