@@ -13,7 +13,6 @@
 #include <opencv2/imgproc/types_c.h>
 #include <stddef.h>
 #include <string>
-#include <opencv2/video/background_segm.hpp>
 
 #include "../utilities/General.h"
 #include <chrono>
@@ -135,72 +134,20 @@ bool Scene3DRenderer::processFrame()
 void Scene3DRenderer::processForeground(
 		Camera* camera)
 {
-	VideoCapture background_video;
-	double learning_rate = -1;
-	//create Background Subtractor objects
-	Ptr<BackgroundSubtractor> pBackSub;
-	pBackSub = createBackgroundSubtractorMOG2();
-
-	//background learning
-	background_video = VideoCapture(camera->getDataPath() + General::BackgroundVideoFile);
-
-	Mat frame, fgMask;
-	while (true) {
-		background_video >> frame;
-		if (frame.empty())
-			break;
-		//update the background model
-		pBackSub->apply(frame, fgMask, learning_rate);
-		//GaussianBlur(fgMask, fgMask, Size(11, 11), 3.5, 3.5);
-
-		//threshold(fgMask, fgMask, 8, 255, THRESH_BINARY);
-		//get the frame number and write it on the current frame
-		//imshow("Frame", frame);
-		//imshow("FG Mask", fgMask);
-	}
-
-
 	assert(!camera->getFrame().empty());
 	Mat video_frame;
-	video_frame = camera->getFrame();
-	//cvtColor(camera->getFrame(), hsv_image,	CV_BGR2RGB);  // from BGR to HSV color space
-	//pbackSub2
-	//stop learning
-	pBackSub->apply(video_frame, fgMask, learning_rate = 0);
+	video_frame = camera->getFrame();						  //get the frame from the video
 
-	//apply opening
-	// Apply erosion
-	//Mat element = getStructuringElement(MORPH_ELLIPSE,
-	//	Size(3, 3));
-	//erode(fgMask, fgMask, element);
+	//Get the foregroundMask learnt in camera initialization
+	Mat foregroundMask = camera->getSubtractorMask();		  
+	camera->pBackSub->apply(video_frame, foregroundMask, 0); //learningrate is 0, we don't want to "learn" at this stage
 
-	//// Apply dilation
-	//element = getStructuringElement(MORPH_ELLIPSE,
-	//	Size(3, 3));
-	//dilate(fgMask, fgMask, element);
-
-	//post_processing
+	//post_processing (perform opening with 3x3)
 	int morph_size = 1;
 	Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2 * morph_size + 1, 2 * morph_size + 1), Point(morph_size, morph_size));
-	morphologyEx(fgMask, fgMask, 2, element); //operation 2 for opening = erosion + dilation (smoothing the image)
+	morphologyEx(foregroundMask, foregroundMask, 2, element); //operation 2 for opening = erosion + dilation (smoothing the image)
 
-
-	//GaussianBlur(fgMask, fgMask, Size(3, 3), 0);
-	//threshold(fgMask, fgMask, 255, 255, THRESH_OTSU);
-
-	//vector<Mat> channels;
-	//split(hsv_image, channels);  // Split the HSV-channels for further analysis
-
-	// Background subtraction H
-	//Mat tmp, foreground, background;
-
-	//imshow("CH0", channels[0]);
-	//imshow("CH1", channels[1]);
-	//imshow("CH2", channels[2]);
-
-	// Improve the foreground image
-
-	camera->setForegroundImage(fgMask);
+	camera->setForegroundImage(foregroundMask);
 }
 
 /**

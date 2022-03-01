@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 #include <opencv2/video/background_segm.hpp>
-
+//
 namespace nl_uu_science_gmt
 {
 
@@ -53,6 +53,7 @@ class Camera
 	std::vector<cv::Point3f> m_camera_floor;         // Projection of the camera itself onto the ground floor view
 
 	cv::Mat m_frame;                                 // Current video frame (image)
+	cv::Mat m_subtractormask;						 // mask for subtractor
 
 	static void onMouse(int, int, int, int, void*);
 	void initCamLoc();
@@ -67,7 +68,7 @@ public:
 
 	bool initialize();
 
-	//cv::Ptr<BackgroundSubtractor> pBackSub;
+	cv::Ptr<cv::BackgroundSubtractor> pBackSub;		 // Create BackgroundSubtractor ptr and make it visible for processForeground
 
 	cv::Mat& advanceVideoFrame();
 	cv::Mat& getVideoFrame(int);
@@ -137,6 +138,12 @@ public:
 	{
 		return m_frame;
 	}
+
+	const cv::Mat& getSubtractorMask() const
+	{
+		return m_subtractormask;
+	}
+
 
 	const std::vector<cv::Point3f>& getCameraFloor() const
 	{

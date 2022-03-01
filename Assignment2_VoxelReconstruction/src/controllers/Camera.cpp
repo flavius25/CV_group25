@@ -99,6 +99,21 @@ bool Camera::initialize()
 	m_video.release(); //Re-open the file because _video.set(CAP_PROP_POS_AVI_RATIO, 1) may screw it up
 	m_video = cv::VideoCapture(m_data_path + General::VideoFile);
 
+	// BackgroundLearning for SubtractorMOG2
+	VideoCapture background_video;
+	Mat frame, fgMask;
+	double learning_rate = -1;
+	pBackSub = createBackgroundSubtractorMOG2();
+	background_video = VideoCapture(m_data_path + General::BackgroundVideoFile);
+	while (true) {
+		background_video >> frame;
+		if (frame.empty())
+			break;
+		//update the background model
+		pBackSub->apply(frame, fgMask, learning_rate);
+	}
+	m_subtractormask = fgMask.clone();
+	
 	// Read the camera properties (XML)
 	FileStorage fs;
 	fs.open(m_data_path + m_cam_props_file, FileStorage::READ);
