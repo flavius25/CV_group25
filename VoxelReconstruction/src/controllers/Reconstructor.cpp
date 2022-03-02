@@ -89,8 +89,10 @@ void Reconstructor::initialize()
 	m_corners.push_back(new Point3f((float) xL, (float) yR, (float) zR));
 	m_corners.push_back(new Point3f((float) xR, (float) yR, (float) zR));
 	m_corners.push_back(new Point3f((float) xR, (float) yL, (float) zR));
+		
 
 
+	//Read in color_reference image for each camera
 	std::vector <cv::Mat> color_img_vec;
 	for (size_t c = 0; c < m_cameras.size(); ++c){
 		std::string path = m_cameras[c]->getDataPath();
@@ -105,6 +107,7 @@ void Reconstructor::initialize()
 
 	int z;
 	int pdone = 0;
+	int count = 0;
 #pragma omp parallel for schedule(static) private(z) shared(pdone)
 	for (z = zL; z < zR; z += m_step)
 	{
@@ -134,10 +137,9 @@ void Reconstructor::initialize()
 				voxel->z = z;
 				voxel->camera_projection = vector<Point>(m_cameras.size());
 				voxel->valid_camera_projection = vector<int>(m_cameras.size(), 0);
-				//voxel->color = vector<int>(3);
+
 
 				const int p = zp * plane + yp * plane_x + xp;  // The voxel's index
-				std::vector <std::vector<double>> colors_vector; 
 				for (size_t c = 0; c < m_cameras.size(); ++c)
 				{
 					Point point = m_cameras[c]->projectOnView(Point3f((float) x, (float) y, (float) z));
@@ -145,20 +147,22 @@ void Reconstructor::initialize()
 					// Save the pixel coordinates 'point' of the voxel projection on camera 'c'
 					voxel->camera_projection[(int) c] = point;
 
-					Mat color_img = color_img_vec[c];
-					double b = color_img.at<cv::Vec3b>(point)[0];
-					double g = color_img.at<cv::Vec3b>(point)[1];
-					double r = color_img.at<cv::Vec3b>(point)[2];
-					cout << "bgr" << b << g << r << endl;
-					std::vector<double> bgr = {b,g,r}; 
-					colors_vector.push_back(bgr);
 
 					// If it's within the camera's FoV, flag the projection
 					if (point.x >= 0 && point.x < m_plane_size.width && point.y >= 0 && point.y < m_plane_size.height)
 						voxel->valid_camera_projection[(int) c] = 1;
+
+						//Only taking the rgb pixel values for camera 2 currently, ideally would have taken average over all 4 cameras
+						if (c == 1){
+
+						Mat color_img = color_img_vec[1];
+						cv::Vec3f bgr = color_img.at<cv::Vec3f>(point);
+						voxel->color = bgr;
+						count++;
+						cout << count << ", " << flush;
+						}
 				}
-				
-				m_voxels[p]->color = colors_vector[1];
+			
 				//Writing voxel 'p' is not critical as it's unique (thread safe)
 				m_voxels[p] = voxel;
 			}
@@ -199,6 +203,7 @@ void Reconstructor::update()
 		// If the voxel is present on all cameras
 		if (camera_counter == m_cameras.size())
 		{
+
 #pragma omp critical //push_back is critical
 			visible_voxels.push_back(voxel);
 		}
