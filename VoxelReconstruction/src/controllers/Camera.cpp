@@ -8,12 +8,12 @@
 #include "Camera.h"
 
 #include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 #include <opencv2/core/core_c.h>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/operations.hpp>
 #include <opencv2/core/types_c.h>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/highgui.hpp>
 #include <opencv2/highgui/highgui_c.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgproc/types_c.h>
@@ -99,6 +99,21 @@ bool Camera::initialize()
 	m_video.release(); //Re-open the file because _video.set(CAP_PROP_POS_AVI_RATIO, 1) may screw it up
 	m_video = cv::VideoCapture(m_data_path + General::VideoFile);
 
+	// BackgroundLearning for SubtractorMOG2
+	VideoCapture background_video;
+	Mat frame, fgMask;
+	double learning_rate = -1;
+	pBackSub = createBackgroundSubtractorMOG2();
+	background_video = VideoCapture(m_data_path + General::BackgroundVideoFile);
+	while (true) {
+		background_video >> frame;
+		if (frame.empty())
+			break;
+		//update the background model
+		pBackSub->apply(frame, fgMask, learning_rate);
+	}
+	m_subtractormask = fgMask.clone();
+	
 	// Read the camera properties (XML)
 	FileStorage fs;
 	fs.open(m_data_path + m_cam_props_file, FileStorage::READ);

@@ -28,15 +28,16 @@ namespace nl_uu_science_gmt
 Reconstructor::Reconstructor(
 		const vector<Camera*> &cs) :
 				m_cameras(cs),
-				m_height(2048),
+				m_height(1888),
 				m_step(32)
 {
 	for (size_t c = 0; c < m_cameras.size(); ++c)
 	{
-		if (m_plane_size.area() > 0)
-			assert(m_plane_size.width == m_cameras[c]->getSize().width && m_plane_size.height == m_cameras[c]->getSize().height);
-		else
-			m_plane_size = m_cameras[c]->getSize();
+		// if (m_plane_size.area() > 0)
+		// 	assert(m_plane_size.width == m_cameras[c]->getSize().width && m_plane_size.height == m_cameras[c]->getSize().height);
+		// else
+			m_plane_size = cv::Size(500, 486); // m_cameras[c]->getSize();
+			//cout << "Plane size" << m_plane_size << endl;
 	}
 
 	const size_t edge = 2 * m_height;
@@ -89,6 +90,15 @@ void Reconstructor::initialize()
 	m_corners.push_back(new Point3f((float) xR, (float) yR, (float) zR));
 	m_corners.push_back(new Point3f((float) xR, (float) yL, (float) zR));
 
+
+	std::vector <cv::Mat> color_img_vec;
+	for (size_t c = 0; c < m_cameras.size(); ++c){
+		std::string path = m_cameras[c]->getDataPath();
+		Mat color_ref_img = imread(path +"color_reference.png");
+		color_img_vec.push_back(color_ref_img);
+	}
+
+
 	// Acquire some memory for efficiency
 	cout << "Initializing " << m_voxels_amount << " voxels ";
 	m_voxels.resize(m_voxels_amount);
@@ -124,9 +134,10 @@ void Reconstructor::initialize()
 				voxel->z = z;
 				voxel->camera_projection = vector<Point>(m_cameras.size());
 				voxel->valid_camera_projection = vector<int>(m_cameras.size(), 0);
+				//voxel->color = vector<int>(3);
 
 				const int p = zp * plane + yp * plane_x + xp;  // The voxel's index
-
+				std::vector <std::vector<double>> colors_vector; 
 				for (size_t c = 0; c < m_cameras.size(); ++c)
 				{
 					Point point = m_cameras[c]->projectOnView(Point3f((float) x, (float) y, (float) z));
@@ -134,17 +145,26 @@ void Reconstructor::initialize()
 					// Save the pixel coordinates 'point' of the voxel projection on camera 'c'
 					voxel->camera_projection[(int) c] = point;
 
+					Mat color_img = color_img_vec[c];
+					double b = color_img.at<cv::Vec3b>(point)[0];
+					double g = color_img.at<cv::Vec3b>(point)[1];
+					double r = color_img.at<cv::Vec3b>(point)[2];
+					cout << "bgr" << b << g << r << endl;
+					std::vector<double> bgr = {b,g,r}; 
+					colors_vector.push_back(bgr);
+
 					// If it's within the camera's FoV, flag the projection
 					if (point.x >= 0 && point.x < m_plane_size.width && point.y >= 0 && point.y < m_plane_size.height)
 						voxel->valid_camera_projection[(int) c] = 1;
 				}
-
+				
+				m_voxels[p]->color = colors_vector[1];
 				//Writing voxel 'p' is not critical as it's unique (thread safe)
 				m_voxels[p] = voxel;
 			}
 		}
 	}
-
+	
 	cout << "done!" << endl;
 }
 
@@ -186,5 +206,7 @@ void Reconstructor::update()
 
 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
 }
+
+
 
 } /* namespace nl_uu_science_gmt */

@@ -15,6 +15,9 @@
 #include <string>
 
 #include "../utilities/General.h"
+#include <chrono>
+#include <iostream>
+using namespace std::chrono;
 
 using namespace std;
 using namespace cv;
@@ -111,7 +114,15 @@ bool Scene3DRenderer::processFrame()
 			m_cameras[c]->getVideoFrame(m_current_frame);
 		}
 		assert(m_cameras[c] != NULL);
+		auto start = high_resolution_clock::now();
 		processForeground(m_cameras[c]);
+		// After function call
+		auto stop = high_resolution_clock::now();
+		auto duration = duration_cast<milliseconds>(stop - start);
+
+		// To get the value of duration use the count()
+		// member function on the duration object
+		//std::cout << duration.count() << endl;
 	}
 	return true;
 }
@@ -124,30 +135,19 @@ void Scene3DRenderer::processForeground(
 		Camera* camera)
 {
 	assert(!camera->getFrame().empty());
-	Mat hsv_image;
-	cvtColor(camera->getFrame(), hsv_image, CV_BGR2HSV);  // from BGR to HSV color space
+	Mat video_frame;
+	video_frame = camera->getFrame();						  //get the frame from the video
 
-	vector<Mat> channels;
-	split(hsv_image, channels);  // Split the HSV-channels for further analysis
+	//Get the foregroundMask learnt in camera initialization
+	Mat foregroundMask = camera->getSubtractorMask();		  
+	camera->pBackSub->apply(video_frame, foregroundMask, 0); //learningrate is 0, we don't want to "learn" at this stage
 
-	// Background subtraction H
-	Mat tmp, foreground, background;
-	absdiff(channels[0], camera->getBgHsvChannels().at(0), tmp);
-	threshold(tmp, foreground, m_h_threshold, 255, CV_THRESH_BINARY);
+	//post_processing (perform opening with 3x3)
+	int morph_size = 1;
+	Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2 * morph_size + 1, 2 * morph_size + 1), Point(morph_size, morph_size));
+	morphologyEx(foregroundMask, foregroundMask, 2, element); //operation 2 for opening = erosion + dilation (smoothing the image)
 
-	// Background subtraction S
-	absdiff(channels[1], camera->getBgHsvChannels().at(1), tmp);
-	threshold(tmp, background, m_s_threshold, 255, CV_THRESH_BINARY);
-	bitwise_and(foreground, background, foreground);
-
-	// Background subtraction V
-	absdiff(channels[2], camera->getBgHsvChannels().at(2), tmp);
-	threshold(tmp, background, m_v_threshold, 255, CV_THRESH_BINARY);
-	bitwise_or(foreground, background, foreground);
-
-	// Improve the foreground image
-
-	camera->setForegroundImage(foreground);
+	camera->setForegroundImage(foregroundMask);
 }
 
 /**

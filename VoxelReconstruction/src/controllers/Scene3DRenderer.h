@@ -15,6 +15,11 @@
 #include <Windows.h>
 #endif
 
+ #include <opencv2/core/mat.hpp>
+ #include <opencv2/highgui.hpp>
+ #include <opencv2/imgproc/imgproc.hpp>
+ #include <opencv2/imgproc/types_c.h>
+
 #include "arcball.h"
 #include "Camera.h"
 #include "Reconstructor.h"
