@@ -28,16 +28,15 @@ namespace nl_uu_science_gmt
 Reconstructor::Reconstructor(
 		const vector<Camera*> &cs) :
 				m_cameras(cs),
-				m_height(1888),
+				m_height(2048),
 				m_step(32)
 {
 	for (size_t c = 0; c < m_cameras.size(); ++c)
 	{
-		// if (m_plane_size.area() > 0)
-		// 	assert(m_plane_size.width == m_cameras[c]->getSize().width && m_plane_size.height == m_cameras[c]->getSize().height);
-		// else
-			m_plane_size = cv::Size(500, 486); // m_cameras[c]->getSize();
-			//cout << "Plane size" << m_plane_size << endl;
+		if (m_plane_size.area() > 0)
+			assert(m_plane_size.width == m_cameras[c]->getSize().width && m_plane_size.height == m_cameras[c]->getSize().height);
+		else
+			m_plane_size = m_cameras[c]->getSize();
 	}
 
 	const size_t edge = 2 * m_height;
@@ -137,6 +136,8 @@ void Reconstructor::initialize()
 				voxel->z = z;
 				voxel->camera_projection = vector<Point>(m_cameras.size());
 				voxel->valid_camera_projection = vector<int>(m_cameras.size(), 0);
+				cv::Vec3f rgb = (230,230,250);
+				voxel->color = rgb;
 
 
 				const int p = zp * plane + yp * plane_x + xp;  // The voxel's index
@@ -153,14 +154,14 @@ void Reconstructor::initialize()
 						voxel->valid_camera_projection[(int) c] = 1;
 
 						//Only taking the rgb pixel values for camera 2 currently, ideally would have taken average over all 4 cameras
-						if (c == 1){
+						// if (c == 1){
 
-						Mat color_img = color_img_vec[1];
-						cv::Vec3f bgr = color_img.at<cv::Vec3f>(point);
-						voxel->color = bgr;
-						count++;
-						cout << count << ", " << flush;
-						}
+						// Mat color_img = color_img_vec[1];
+						// cv::Vec3f bgr = color_img.at<cv::Vec3f>(point);
+						// voxel->color = bgr;
+						// count++;
+						// cout << count << ", " << flush;
+						// }
 				}
 			
 				//Writing voxel 'p' is not critical as it's unique (thread safe)
