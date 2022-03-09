@@ -25,6 +25,8 @@
 #include <string>
 #include <valarray>
 #include <vector>
+#include <chrono>
+using namespace std::chrono;
 
 #include "../utilities/General.h"
 #include "arcball.h"
@@ -654,7 +656,14 @@ void Glut::update(
 	{
 		// If the current frame is different from the last iteration update stuff
 		scene3d.processFrame();
+		auto start = high_resolution_clock::now();
 		scene3d.getReconstructor().update();
+		auto stop = high_resolution_clock::now();
+		auto duration = duration_cast<milliseconds>(stop - start);
+
+		// To get the value of duration use the count()
+		// member function on the duration object
+		std::cout << duration.count() << endl;
 		scene3d.setPreviousFrame(scene3d.getCurrentFrame());
 	}
 	else if (scene3d.getHThreshold() != scene3d.getPHThreshold() || scene3d.getSThreshold() != scene3d.getPSThreshold()

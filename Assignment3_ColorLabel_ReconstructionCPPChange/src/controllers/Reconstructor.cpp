@@ -13,6 +13,7 @@
 #include <cassert>
 #include <iostream>
 #include <iterator>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include "../utilities/General.h"
 
@@ -156,18 +157,29 @@ void Reconstructor::initialize()
  */
 void Reconstructor::update()
 {
+	countFrames++;
+	////cout << countFrames << "\n";
+	//if (countFrames == 514) {
+	//	//Mat frame = m_cameras[3]->getVideoFrame(514);
+	//	Mat act_frame = m_cameras[3]->getFrame();
+	//	imshow("frame2", act_frame);
+	//}
 	m_visible_voxels.clear();
+	m_visible_voxels_frame.clear();
 	std::vector<Voxel*> visible_voxels;
+	std::vector<Voxel*> visible_voxels_frame;
 
 	int v;
 #pragma omp parallel for schedule(static) private(v) shared(visible_voxels)
 	for (v = 0; v < (int) m_voxels_amount; ++v)
 	{
 		int camera_counter = 0;
+		int camera_counter_frame = 0;
 		Voxel* voxel = m_voxels[v];
 
 		for (size_t c = 0; c < m_cameras.size(); ++c)
 		{
+
 			if (voxel->valid_camera_projection[c])
 			{
 				const Point point = voxel->camera_projection[c];
@@ -177,16 +189,55 @@ void Reconstructor::update()
 			}
 		}
 
+		if (countFrames == 514) {
+
+			for (size_t c = 0; c < m_cameras.size(); ++c)
+			{
+
+				if (voxel->valid_camera_projection[c])
+				{
+					const Point point_frame = voxel->camera_projection[c];
+
+					//If there's a white pixel on the foreground image at the projection point, add the camera
+					if (m_cameras[c]->getForegroundImage().at<uchar>(point_frame) == 255) ++camera_counter_frame;
+				}
+			}
+		}
+
 		// If the voxel is present on all cameras
 		if (camera_counter == m_cameras.size())
 		{
 #pragma omp critical //push_back is critical
 			visible_voxels.push_back(voxel);
 		}
+
+		// If the voxel is present on all cameras
+		if (camera_counter_frame == m_cameras.size())
+		{
+#pragma omp critical //push_back is critical
+			visible_voxels_frame.push_back(voxel);
+		}
+
 	}
 
-	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
+	//for frame 514 process labels and centers
+	if (!visible_voxels_frame.empty()) {
+		m_visible_voxels_frame.insert(m_visible_voxels_frame.end(), visible_voxels_frame.begin(), visible_voxels_frame.end());
+		vector<Point2f> groundCoordinates_frame(visible_voxels_frame.size());
+		for (int i = 0; i < (int)m_visible_voxels_frame.size(); i++) {
+			groundCoordinates_frame[i] = Point2f(m_visible_voxels_frame[i]->x, m_visible_voxels_frame[i]->y);
+			cout << groundCoordinates_frame[i];
+		}
+		std::vector<int> labels_frame;
+		kmeans(groundCoordinates_frame, 4, labels_frame, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers_frame);
 
+		m_groundCoordinates_frame.assign(groundCoordinates_frame.begin(), groundCoordinates_frame.end());
+		m_labels_frame.assign(labels_frame.begin(), labels_frame.end());
+	}
+	
+	//clustering for each frame
+	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
+	
 	vector<Point2f> groundCoordinates(m_visible_voxels.size());
 
 	for (int i = 0; i < (int)m_visible_voxels.size(); i++) {
@@ -195,13 +246,14 @@ void Reconstructor::update()
 
 	m_groundCoordinates.assign(groundCoordinates.begin(), groundCoordinates.end());
 
-	std::vector<int> labels;						// labels
+	std::vector<int> labels;								//labels
 
 	kmeans(groundCoordinates, 4, labels, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
 
 	m_labels.assign(labels.begin(), labels.end());
 
-	cout << centers.at<float>(3,1) << "\n";
+
+	//cout << centers.at<float>(3,1) << "\n";
 	//for (size_t l = 0; l < labels.size(); l++) {
 	//	cout << labels[l];
 	//}

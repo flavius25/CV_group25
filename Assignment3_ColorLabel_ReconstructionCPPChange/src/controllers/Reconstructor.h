@@ -36,17 +36,22 @@ private:
 	const std::vector<Camera*> &m_cameras;  // vector of pointers to cameras
 	const int m_height;                     // Cube half-space height from floor to ceiling
 	const int m_step;                       // Step size (space between voxels)
+	int countFrames;						// generalCounter for frames	
 
 	std::vector<cv::Point3f*> m_corners;			// Cube half-space corner locations
 	std::vector<int> m_labels;						// labels
+	std::vector<int> m_labels_frame;						// labels for specific frame
 	cv::Mat centers;								// to store centers
+	cv::Mat centers_frame;								// to store centers
 	std::vector<cv::Point2f> m_groundCoordinates;	// take groundcoordinates
+	std::vector<cv::Point2f> m_groundCoordinates_frame;	// take groundcoordinates for specific frame
 
 	size_t m_voxels_amount;                 // Voxel count
 	cv::Size m_plane_size;                  // Camera FoV plane WxH
 
 	std::vector<Voxel*> m_voxels;           // Pointer vector to all voxels in the half-space
 	std::vector<Voxel*> m_visible_voxels;   // Pointer vector to all visible voxels
+	std::vector<Voxel*> m_visible_voxels_frame;   // Pointer vector to all visible voxels from specified frame
 
 	void initialize();
 
@@ -89,14 +94,29 @@ public:
 		return m_groundCoordinates;
 	}
 
+	const std::vector<cv::Point2f>& getGroundCoordinatesFrame() const
+	{
+		return m_groundCoordinates_frame;
+	}
+
 	const std::vector<int>& getLabels() const
 	{
 		return m_labels;
 	}
 
+	const std::vector<int>& getLabelsFrame() const
+	{
+		return m_labels_frame;
+	}
+
 	const std::vector<cv::Mat>& getCenters() const
 	{
 		return centers;
+	}
+
+	const std::vector<cv::Mat>& getCentersFrame() const
+	{
+		return centers_frame;
 	}
 
 	int getSize() const
