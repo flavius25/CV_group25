@@ -30,7 +30,16 @@ public:
 		cv::Scalar color;                          // Color
 		std::vector<cv::Point> camera_projection;  // Projection location for camera[c]'s FoV (2D)
 		std::vector<int> valid_camera_projection;  // Flag if camera projection is in camera[c]'s FoV
+		int label;
 	};
+
+	//Define 4 colors 
+    cv::Scalar color_tab ={
+        (0,0,255),
+        (0,255,0),
+        (255,0,0),
+        (255,0,255)
+    };
 
 private:
 	const std::vector<Camera*> &m_cameras;  // vector of pointers to cameras
