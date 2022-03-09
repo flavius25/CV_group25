@@ -39,6 +39,9 @@ private:
 	const int m_step;                       // Step size (space between voxels)
 
 	std::vector<cv::Point3f*> m_corners;    // Cube half-space corner locations
+	std::vector<int> m_labels;						// labels
+	cv::Mat centers;								// to store centers
+	std::vector<cv::Point2f> m_groundCoordinates;	// take groundcoordinates
 
 	size_t m_voxels_amount;                 // Voxel count
 	cv::Size m_plane_size;                  // Camera FoV plane WxH

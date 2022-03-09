@@ -211,6 +211,27 @@ void Reconstructor::update()
 	}
 
 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
+
+
+	vector<Point2f> groundCoordinates(m_visible_voxels.size());
+
+	for (int i = 0; i < (int)m_visible_voxels.size(); i++) {
+		groundCoordinates[i] = Point2f(m_visible_voxels[i]->x, m_visible_voxels[i]->y);
+	}
+
+	m_groundCoordinates.assign(groundCoordinates.begin(), groundCoordinates.end());
+
+	std::vector<int> labels;						// labels
+
+	kmeans(groundCoordinates, 4, labels, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
+
+	m_labels.assign(labels.begin(), labels.end());
+
+	cout << centers.at<float>(3,1) << "\n";
+	//for (size_t l = 0; l < labels.size(); l++) {
+	//	cout << labels[l];
+	//}
+	//cout << centers;
 }
 
 
