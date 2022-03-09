@@ -227,7 +227,12 @@ void Reconstructor::update()
 
 	m_labels.assign(labels.begin(), labels.end());
 
-	cout << centers.at<float>(3,1) << "\n";
+	cout << centers << "\n"; //.at<float>(3,1)
+	for (int i = 0; i < m_labels.size(); i++){
+		cout << m_labels[i];
+	}
+	cout << "\n";
+	cout << "\n";
 	//for (size_t l = 0; l < labels.size(); l++) {
 	//	cout << labels[l];
 	//}
