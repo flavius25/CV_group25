@@ -33,6 +33,14 @@ public:
 		int label; 									//label which person it is
 	};
 
+	 //Define 4 colors 
+    cv::Vec3f color_tab ={
+        (0,0,255),
+        (0,255,0),
+        (255,0,0),
+        (255,0,255)
+    };
+
 private:
 	const std::vector<Camera*> &m_cameras;  // vector of pointers to cameras
 	const int m_height;                     // Cube half-space height from floor to ceiling
