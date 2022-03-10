@@ -192,7 +192,7 @@ void Reconstructor::update()
 			}
 		}
 
-		if (countFrames == 514) {
+		if (countFrames == 10) {
 
 			for (size_t c = 0; c < m_cameras.size(); ++c)
 			{
@@ -234,11 +234,31 @@ void Reconstructor::update()
 		std::vector<int> labels_frame;
 		kmeans(groundCoordinates_frame, 4, labels_frame, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers_frame);
 
+		//get currentframe in img
+		Mat img = m_cameras[3]->getFrame();
+		std::vector<cv::Vec3b> m_bgr;								//vector for storing RGB values for voxel
+
+		//asign m_visible_voxels_frame to labels
+		for (int i = 0; i < m_visible_voxels_frame.size(); i++) {
+			m_visible_voxels_frame[i]->label = labels_frame[i];
+			const Point point_forrgb = m_visible_voxels_frame[i]->camera_projection[3];
+			cv::Vec3b bgr = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
+			m_bgr.push_back(bgr);
+			//Mat points(bgr[0], 3, CV_64FC1);
+		}
+
+		//Mat img_2 = m_bgr;
+		//cout << m_bgr[0] << " " << m_bgr[1];
+
 		m_groundCoordinates_frame.assign(groundCoordinates_frame.begin(), groundCoordinates_frame.end());
 		m_labels_frame.assign(labels_frame.begin(), labels_frame.end());
 
+
 		//if we do it like this, with img, we don't use at all kmeans. I am still not sure we need to use with GMM, since for this implementation you only need the frame.
-		Mat img = m_cameras[3]->getFrame();
+		
+
+		//cv::Vec3f bgr = img.at<cv::Vec3f>(m_visible_voxels_frame[0]);
+		//m_visible_voxels_frame[0]->color = bgr;
 
 		int width = img.cols;
 		int height = img.rows;
@@ -273,7 +293,7 @@ void Reconstructor::update()
 		//Set convergence conditions
 		GMM_model->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
 		//Store the probability partition to labs EM according to the sample training
-		GMM_model->trainEM(points, noArray(), labels, noArray());
+		GMM_model->trainEM(m_bgr, noArray(), labels, noArray());
 
 		cout << labels;
 
