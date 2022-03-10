@@ -192,7 +192,7 @@ void Reconstructor::update()
 			}
 		}
 
-		if (countFrames == 514) {
+		if (countFrames == 10) {
 
 			for (size_t c = 0; c < m_cameras.size(); ++c)
 			{
@@ -223,47 +223,108 @@ void Reconstructor::update()
 
 	}
 
+	//OFFLINE PHASE    -- only run once
 	//for frame 514 process labels and centers
 	if (!visible_voxels_frame.empty()) {
 		m_visible_voxels_frame.insert(m_visible_voxels_frame.end(), visible_voxels_frame.begin(), visible_voxels_frame.end());
 		vector<Point2f> groundCoordinates_frame(visible_voxels_frame.size());
 		for (int i = 0; i < (int)m_visible_voxels_frame.size(); i++) {
 			groundCoordinates_frame[i] = Point2f(m_visible_voxels_frame[i]->x, m_visible_voxels_frame[i]->y);
-			//cout << groundCoordinates_frame[i];
+			cout << groundCoordinates_frame[i];
 		}
 		std::vector<int> labels_frame;
 		kmeans(groundCoordinates_frame, 4, labels_frame, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers_frame);
 
+		int label1_occur = count(labels_frame.begin(), labels_frame.end(),1);
+		int label2_occur = count(labels_frame.begin(), labels_frame.end(),2);
+		int label3_occur = count(labels_frame.begin(), labels_frame.end(),3);
+		int label4_occur = count(labels_frame.begin(), labels_frame.end(),4);
+
+		//get currentframe in img
+		Mat img = m_cameras[3]->getFrame();
+		//std::vector<cv::Vec3b> m_bgr; //vector for storing RGB values for voxel
+
+		Mat label1(label1_occur, 3, CV_64FC1);
+		Mat label2(label2_occur, 3, CV_64FC1);
+		Mat label3(label3_occur, 3, CV_64FC1);
+		Mat label4(label4_occur, 3, CV_64FC1);						
+
+
+		//asign m_visible_voxels_frame to labels
+		for (int i = 0; i < m_visible_voxels_frame.size(); i++) {
+			m_visible_voxels_frame[i]->label = labels_frame[i];
+			int label_no = labels_frame[i];
+			Mat *mat_name;
+			switch(label_no){
+				case 1:
+					mat_name = &label1;
+					break;
+				case 2:
+					mat_name = &label2;
+					break;
+				case 3:
+					mat_name = &label3;
+					break;
+				case 4:
+					mat_name = &label4;
+					break;	
+			}
+			const Point point_forrgb = m_visible_voxels_frame[i]->camera_projection[3];
+			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
+			//m_bgr.push_back(bgr);
+			Mat row(1,3,CV_64FC1);
+			row.at<double>(0, 0) = static_cast<int>(rgb[0]);
+			row.at<double>(0, 1) = static_cast<int>(rgb[1]);
+			row.at<double>(0, 2) = static_cast<int>(rgb[2]);
+			mat_name.push_back(row);
+			
+		}
+
+		//Concatenate all matrices
+		Mat matArray[] = {label1, label2, label3, label4}; //Array of all matrices to be combined into one
+		cv::Mat allClustersMat; //new matrix of all values, feed this to GMM model
+		cv::vconcat( matArray, 3, allClustersMat);  
+
+
+		//Mat img_2 = m_bgr;
+		//cout << m_bgr[0] << " " << m_bgr[1];
+
 		m_groundCoordinates_frame.assign(groundCoordinates_frame.begin(), groundCoordinates_frame.end());
-		m_labels_frame.assign(labels_frame.begin(), labels_frame.end()); //these two should be of equal lenght right? 
+		m_labels_frame.assign(labels_frame.begin(), labels_frame.end());
+
 
 		//if we do it like this, with img, we don't use at all kmeans. I am still not sure we need to use with GMM, since for this implementation you only need the frame.
-		Mat img = m_cameras[3]->getFrame();
+		
 
-		int width = img.cols;
-		int height = img.rows;
-		int dims = img.channels();
+		//cv::Vec3f bgr = img.at<cv::Vec3f>(m_visible_voxels_frame[0]);
+		//m_visible_voxels_frame[0]->color = bgr;
 
-		int no_samples = width * height;
-		Mat points(no_samples, dims, CV_64FC1);
-		Mat labels;
-		Mat result = Mat::zeros(img.size(), CV_8UC3);
+		// int width = img.cols;
+		// int height = img.rows;
+		// int dims = img.channels();
+
+		// int no_samples = width * height;
+		// Mat points(no_samples, dims, CV_64FC1);
+		// Mat labels;
+		// Mat result = Mat::zeros(img.size(), CV_8UC3);
+
+		// //Define classification, that is, how many classification points of function K value
+		// int no_clusters = 4;
+
+		// // Find RGB pixel values from image coordinates and assign to points
+		// int index = 0;
+		// for (int row = 0; row < height; row++) {
+		// 	for (int col = 0; col < width; col++) {
+		// 		index = row * width + col;
+		// 		Vec3b rgb = img.at<Vec3b>(row, col);
+		// 		points.at<double>(index, 0) = static_cast<int>(rgb[0]);
+		// 		points.at<double>(index, 1) = static_cast<int>(rgb[1]);
+		// 		points.at<double>(index, 2) = static_cast<int>(rgb[2]);
+		// 	}
+		// }
 
 		//Define classification, that is, how many classification points of function K value
 		int no_clusters = 4;
-
-		// Find RGB pixel values from image coordinates and assign to points
-		int index = 0;
-		for (int row = 0; row < height; row++) {
-			for (int col = 0; col < width; col++) {
-				index = row * width + col;
-				Vec3b rgb = img.at<Vec3b>(row, col);
-				points.at<double>(index, 0) = static_cast<int>(rgb[0]);
-				points.at<double>(index, 1) = static_cast<int>(rgb[1]);
-				points.at<double>(index, 2) = static_cast<int>(rgb[2]);
-			}
-		}
-
 		//Create model  
 		Ptr<EM> GMM_model = EM::create();
 		//Initialise number of clusters to look for 
@@ -273,7 +334,7 @@ void Reconstructor::update()
 		//Set convergence conditions
 		GMM_model->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
 		//Store the probability partition to labs EM according to the sample training
-		GMM_model->trainEM(points, noArray(), labels, noArray());
+		GMM_model->trainEM(allClustersMat, noArray(), labels, noArray());
 
 		cout << labels;
 
@@ -281,7 +342,7 @@ void Reconstructor::update()
 		GMM_model->save("GMM_model.xml");
 	}
 	
-
+	//ONLINE PHASE
 	//clustering for each frame
 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
 	
