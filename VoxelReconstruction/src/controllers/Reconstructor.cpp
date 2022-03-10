@@ -7,16 +7,21 @@
 
 #include "Reconstructor.h"
 
+#include <opencv2/opencv.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/operations.hpp>
 #include <opencv2/core/types_c.h>
+#include <math.h>
 #include <cassert>
 #include <iostream>
+#include <iterator>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include "../utilities/General.h"
 
 using namespace std;
 using namespace cv;
+using namespace cv::ml;
 
 namespace nl_uu_science_gmt
 {
@@ -88,17 +93,6 @@ void Reconstructor::initialize()
 	m_corners.push_back(new Point3f((float) xL, (float) yR, (float) zR));
 	m_corners.push_back(new Point3f((float) xR, (float) yR, (float) zR));
 	m_corners.push_back(new Point3f((float) xR, (float) yL, (float) zR));
-		
-
-
-	//Read in color_reference image for each camera
-	std::vector <cv::Mat> color_img_vec;
-	for (size_t c = 0; c < m_cameras.size(); ++c){
-		std::string path = m_cameras[c]->getDataPath();
-		Mat color_ref_img = imread(path +"color_reference.png");
-		color_img_vec.push_back(color_ref_img);
-	}
-
 
 	// Acquire some memory for efficiency
 	cout << "Initializing " << m_voxels_amount << " voxels ";
@@ -106,7 +100,6 @@ void Reconstructor::initialize()
 
 	int z;
 	int pdone = 0;
-	int count = 0;
 #pragma omp parallel for schedule(static) private(z) shared(pdone)
 	for (z = zL; z < zR; z += m_step)
 	{
@@ -136,11 +129,9 @@ void Reconstructor::initialize()
 				voxel->z = z;
 				voxel->camera_projection = vector<Point>(m_cameras.size());
 				voxel->valid_camera_projection = vector<int>(m_cameras.size(), 0);
-				cv::Vec3f rgb = (230,230,250);
-				voxel->color = rgb;
-
 
 				const int p = zp * plane + yp * plane_x + xp;  // The voxel's index
+
 				for (size_t c = 0; c < m_cameras.size(); ++c)
 				{
 					Point point = m_cameras[c]->projectOnView(Point3f((float) x, (float) y, (float) z));
@@ -148,28 +139,17 @@ void Reconstructor::initialize()
 					// Save the pixel coordinates 'point' of the voxel projection on camera 'c'
 					voxel->camera_projection[(int) c] = point;
 
-
 					// If it's within the camera's FoV, flag the projection
 					if (point.x >= 0 && point.x < m_plane_size.width && point.y >= 0 && point.y < m_plane_size.height)
 						voxel->valid_camera_projection[(int) c] = 1;
-
-						//Only taking the rgb pixel values for camera 2 currently, ideally would have taken average over all 4 cameras
-						// if (c == 1){
-
-						// Mat color_img = color_img_vec[1];
-						// cv::Vec3f bgr = color_img.at<cv::Vec3f>(point);
-						// voxel->color = bgr;
-						// count++;
-						// cout << count << ", " << flush;
-						// }
 				}
-			
+
 				//Writing voxel 'p' is not critical as it's unique (thread safe)
 				m_voxels[p] = voxel;
 			}
 		}
 	}
-	
+
 	cout << "done!" << endl;
 }
 
@@ -180,18 +160,29 @@ void Reconstructor::initialize()
  */
 void Reconstructor::update()
 {
+	countFrames++;
+	////cout << countFrames << "\n";
+	//if (countFrames == 514) {
+	//	//Mat frame = m_cameras[3]->getVideoFrame(514);
+	//	Mat act_frame = m_cameras[3]->getFrame();
+	//	imshow("frame2", act_frame);
+	//}
 	m_visible_voxels.clear();
+	m_visible_voxels_frame.clear();
 	std::vector<Voxel*> visible_voxels;
+	std::vector<Voxel*> visible_voxels_frame;
 
 	int v;
 #pragma omp parallel for schedule(static) private(v) shared(visible_voxels)
 	for (v = 0; v < (int) m_voxels_amount; ++v)
 	{
 		int camera_counter = 0;
+		int camera_counter_frame = 0;
 		Voxel* voxel = m_voxels[v];
 
 		for (size_t c = 0; c < m_cameras.size(); ++c)
 		{
+
 			if (voxel->valid_camera_projection[c])
 			{
 				const Point point = voxel->camera_projection[c];
@@ -201,18 +192,99 @@ void Reconstructor::update()
 			}
 		}
 
+		if (countFrames == 514) {
+
+			for (size_t c = 0; c < m_cameras.size(); ++c)
+			{
+
+				if (voxel->valid_camera_projection[c])
+				{
+					const Point point_frame = voxel->camera_projection[c];
+
+					//If there's a white pixel on the foreground image at the projection point, add the camera
+					if (m_cameras[c]->getForegroundImage().at<uchar>(point_frame) == 255) ++camera_counter_frame;
+				}
+			}
+		}
+
 		// If the voxel is present on all cameras
 		if (camera_counter == m_cameras.size())
 		{
-
 #pragma omp critical //push_back is critical
 			visible_voxels.push_back(voxel);
 		}
+
+		// If the voxel is present on all cameras
+		if (camera_counter_frame == m_cameras.size())
+		{
+#pragma omp critical //push_back is critical
+			visible_voxels_frame.push_back(voxel);
+		}
+
 	}
 
+	//for frame 514 process labels and centers
+	if (!visible_voxels_frame.empty()) {
+		m_visible_voxels_frame.insert(m_visible_voxels_frame.end(), visible_voxels_frame.begin(), visible_voxels_frame.end());
+		vector<Point2f> groundCoordinates_frame(visible_voxels_frame.size());
+		for (int i = 0; i < (int)m_visible_voxels_frame.size(); i++) {
+			groundCoordinates_frame[i] = Point2f(m_visible_voxels_frame[i]->x, m_visible_voxels_frame[i]->y);
+			//cout << groundCoordinates_frame[i];
+		}
+		std::vector<int> labels_frame;
+		kmeans(groundCoordinates_frame, 4, labels_frame, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers_frame);
+
+		m_groundCoordinates_frame.assign(groundCoordinates_frame.begin(), groundCoordinates_frame.end());
+		m_labels_frame.assign(labels_frame.begin(), labels_frame.end()); //these two should be of equal lenght right? 
+
+		//if we do it like this, with img, we don't use at all kmeans. I am still not sure we need to use with GMM, since for this implementation you only need the frame.
+		Mat img = m_cameras[3]->getFrame();
+
+		int width = img.cols;
+		int height = img.rows;
+		int dims = img.channels();
+
+		int no_samples = width * height;
+		Mat points(no_samples, dims, CV_64FC1);
+		Mat labels;
+		Mat result = Mat::zeros(img.size(), CV_8UC3);
+
+		//Define classification, that is, how many classification points of function K value
+		int no_clusters = 4;
+
+		// Find RGB pixel values from image coordinates and assign to points
+		int index = 0;
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
+				index = row * width + col;
+				Vec3b rgb = img.at<Vec3b>(row, col);
+				points.at<double>(index, 0) = static_cast<int>(rgb[0]);
+				points.at<double>(index, 1) = static_cast<int>(rgb[1]);
+				points.at<double>(index, 2) = static_cast<int>(rgb[2]);
+			}
+		}
+
+		//Create model  
+		Ptr<EM> GMM_model = EM::create();
+		//Initialise number of clusters to look for 
+		GMM_model->setClustersNumber(no_clusters);
+		//Set covariance matrix type
+		GMM_model->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
+		//Set convergence conditions
+		GMM_model->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
+		//Store the probability partition to labs EM according to the sample training
+		GMM_model->trainEM(points, noArray(), labels, noArray());
+
+		cout << labels;
+
+		//Save model in xml-file
+		GMM_model->save("GMM_model.xml");
+	}
+	
+
+	//clustering for each frame
 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
-
-
+	
 	vector<Point2f> groundCoordinates(m_visible_voxels.size());
 
 	for (int i = 0; i < (int)m_visible_voxels.size(); i++) {
@@ -221,24 +293,40 @@ void Reconstructor::update()
 
 	m_groundCoordinates.assign(groundCoordinates.begin(), groundCoordinates.end());
 
-	std::vector<int> labels;						// labels
+	std::vector<int> labels;								//labels
 
 	kmeans(groundCoordinates, 4, labels, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
 
 	m_labels.assign(labels.begin(), labels.end());
 
-	cout << centers << "\n"; //.at<float>(3,1)
-	for (int i = 0; i < m_labels.size(); i++){
-		cout << m_labels[i];
-	}
-	cout << "\n";
-	cout << "\n";
+	 //load the GMM_model
+	Ptr<EM> GMM_model = EM::load("GMM_model.xml");
+
+	//vector of cluster matrices
+	//std::vector <Mat> cluster_matrices;
+
+	std::vector <int> predictions;
+
+	////for loop where prediction of color_label happens, important that all voxels have assigned label for which cluster they belong to (0,1,2,3) and that the cluster matrices are order the same
+	//for (int cl = 0; cl < labels.size(); cl++) {
+
+	//	int prediction = cvRound(GMM_model->predict2(cl, noArray())[1]);			//we get an error here. Don't know exactly what is required (indeed I feed the for with labels and not cluster_matrices
+	//	predictions.push_back(prediction);
+	//}
+
+	//for (int i = 0; i < (int)m_visible_voxels.size(); i++) {
+	//	int lb = m_visible_voxels[i]->label;
+	//	int color_index = predictions[lb];
+	//	m_visible_voxels[i]->color = color_tab[color_index];
+
+
+	//}
+
+	//cout << centers.at<float>(3,1) << "\n";
 	//for (size_t l = 0; l < labels.size(); l++) {
 	//	cout << labels[l];
 	//}
 	//cout << centers;
 }
-
-
 
 } /* namespace nl_uu_science_gmt */
