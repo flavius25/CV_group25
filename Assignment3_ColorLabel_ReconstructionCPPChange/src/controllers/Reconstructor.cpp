@@ -177,7 +177,6 @@ void Reconstructor::update()
 	for (v = 0; v < (int)m_voxels_amount; ++v)
 	{
 		int camera_counter = 0;
-		int camera_counter_frame = 0;
 		Voxel* voxel = m_voxels[v];
 
 		for (size_t c = 0; c < m_cameras.size(); ++c)
@@ -193,51 +192,16 @@ void Reconstructor::update()
 
 		}
 
-		//if (countFrames == 4) {
-		//	if (voxel->valid_camera_projection[1]) {
-		//		const Point point = voxel->camera_projection[1];
-		//		if (m_cameras[1]->getForegroundImage().at<uchar>(point) == 255) ++camera_counter_frame;
-		//	}
-		//}
-
-		//if (countFrames == 4) {
-		//	if (voxel->valid_camera_projection[1] && m_cameras[1]->getForegroundImage().at<uchar>) {
-
-		//	}
-		//}
-
-		if (countFrames == 4) {
-
-			for (size_t c = 0; c < m_cameras.size(); ++c)
-			{
-
-				if (voxel->valid_camera_projection[1])
-				{
-					const Point point_frame = voxel->camera_projection[1];
-
-					//If there's a white pixel on the foreground image at the projection point, add the camera
-					if (m_cameras[c]->getForegroundImage().at<uchar>(point_frame) == 255) ++camera_counter_frame;
-				}
-			}
-		}
-
 		// If the voxel is present on all cameras
 		if (camera_counter == m_cameras.size())
 		{
 #pragma omp critical //push_back is critical
 			visible_voxels.push_back(voxel);			//for online
-//			if (countFrames == 4)
-//			{
-//#pragma omp critical //push_back is critical
-//				visible_voxels_frame.push_back(voxel);	//for offline
-//			}
-		}
-
-		// If the voxel is present on all cameras
-		if (camera_counter_frame == m_cameras.size())
-		{
+			if (countFrames == 4)
+			{
 #pragma omp critical //push_back is critical
-			visible_voxels_frame.push_back(voxel);
+				visible_voxels_frame.push_back(voxel);	//for offline
+			}
 		}
 
 	}
@@ -245,10 +209,10 @@ void Reconstructor::update()
 	//OFFLINE PHASE    -- only run once
 	//for frame 514 process labels and centers
 	if (!visible_voxels_frame.empty()) {
-		m_visible_voxels_frame.insert(m_visible_voxels_frame.end(), visible_voxels_frame.begin(), visible_voxels_frame.end());
+		//m_visible_voxels_frame.insert(m_visible_voxels_frame.end(), visible_voxels_frame.begin(), visible_voxels_frame.end());
 		vector<Point2f> groundCoordinates_frame(visible_voxels_frame.size());
-		for (int i = 0; i < (int)m_visible_voxels_frame.size(); i++) {
-			groundCoordinates_frame[i] = Point2f(m_visible_voxels_frame[i]->x, m_visible_voxels_frame[i]->y);
+		for (int i = 0; i < (int)visible_voxels_frame.size(); i++) {
+			groundCoordinates_frame[i] = Point2f(visible_voxels_frame[i]->x, visible_voxels_frame[i]->y);
 			//cout << groundCoordinates_frame[i];
 		}
 		std::vector<int> labels_frame;
@@ -274,12 +238,12 @@ void Reconstructor::update()
 		int index_cluster4 = 0;
 
 		//asign m_visible_voxels_frame to labels
-		for (int i = 0; i < m_visible_voxels_frame.size(); i++) {
-			m_visible_voxels_frame[i]->label = labels_frame[i];
+		for (int i = 0; i < visible_voxels_frame.size(); i++) {
+			visible_voxels_frame[i]->label = labels_frame[i];
 			int label_no = labels_frame[i];
 			//Mat mat_name;
 
-			const Point point_forrgb = m_visible_voxels_frame[i]->camera_projection[1];
+			const Point point_forrgb = visible_voxels_frame[i]->camera_projection[1];
 			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
 			//m_bgr.push_back(bgr);
 
@@ -334,8 +298,8 @@ void Reconstructor::update()
 		//Mat img_2 = m_bgr;
 		//cout << m_bgr[0] << " " << m_bgr[1];
 
-		m_groundCoordinates_frame.assign(groundCoordinates_frame.begin(), groundCoordinates_frame.end());
-		m_labels_frame.assign(labels_frame.begin(), labels_frame.end());
+		//m_groundCoordinates_frame.assign(groundCoordinates_frame.begin(), groundCoordinates_frame.end());
+		//m_labels_frame.assign(labels_frame.begin(), labels_frame.end());
 
 		//Put number of clusters to 3 here, corresponding to number of color components, as each person has roughly 3 specific colors
 		int no_clusters = 4;
@@ -387,19 +351,15 @@ void Reconstructor::update()
 	//clustering for each frame
 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
 
-	vector<Point2f> groundCoordinates(m_visible_voxels.size());
+	vector<Point2f> groundCoordinates(visible_voxels.size());
 
-	for (int i = 0; i < (int)m_visible_voxels.size(); i++) {
-		groundCoordinates[i] = Point2f(m_visible_voxels[i]->x, m_visible_voxels[i]->y);
+	for (int i = 0; i < (int)visible_voxels.size(); i++) {
+		groundCoordinates[i] = Point2f(visible_voxels[i]->x, visible_voxels[i]->y);
 	}
-
-	m_groundCoordinates.assign(groundCoordinates.begin(), groundCoordinates.end());
 
 	std::vector<int> labels;								//labels
 
 	kmeans(groundCoordinates, 4, labels, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
-
-	m_labels.assign(labels.begin(), labels.end());
 
 	//load the GMM_model
 	Ptr<EM> GMM_model1 = EM::load("GMM_model1.xml");
@@ -414,7 +374,6 @@ void Reconstructor::update()
 
 	//get currentframe in img
 	Mat img = m_cameras[1]->getFrame();
-	//std::vector<cv::Vec3b> m_bgr; //vector for storing RGB values for voxel
 
 	Mat cluster1(cluster1_occur, 3, CV_64FC1);
 	Mat cluster2(cluster2_occur, 3, CV_64FC1);
@@ -428,18 +387,12 @@ void Reconstructor::update()
 
 
 	//asign m_visible_voxels to labels
-	for (int i = 0; i < m_visible_voxels.size(); i++) {
-		m_visible_voxels[i]->label = labels[i];
+	for (int i = 0; i < visible_voxels.size(); i++) {
+		visible_voxels[i]->label = labels[i];
 		int label_no = labels[i];
 
-		const Point point_forrgb = m_visible_voxels[i]->camera_projection[1];
+		const Point point_forrgb = visible_voxels[i]->camera_projection[1];
 		cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-		//m_bgr.push_back(bgr);
-
-		//Mat row(1, 3, CV_64FC1);
-		//row.at<double>(0, 0) = static_cast<int>(rgb[0]);
-		//row.at<double>(0, 1) = static_cast<int>(rgb[1]);
-		//row.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
 		switch (label_no) {
 		case 0:
@@ -525,12 +478,12 @@ void Reconstructor::update()
 	// 		predictions.push_back(prediction);
 	// 	}
 
-	for (int i = 0; i < (int)m_visible_voxels.size(); i++) {
-		int lb = m_visible_voxels[i]->label;
+	for (int i = 0; i < (int)visible_voxels.size(); i++) {
+		int lb = visible_voxels[i]->label;
 		int color_index = final_labels[lb];
-		m_visible_voxels[i]->color = color_tab[color_index];
-
-
+		//Vec3b c = color_tab[1];
+		visible_voxels[i]->color = color_tab[color_index];
+		//cout << color_tab[1];
 	}
 
 	//cout << centers.at<float>(3,1) << "\n";
