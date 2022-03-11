@@ -27,18 +27,18 @@ public:
 	struct Voxel
 	{
 		int x, y, z;                               // Coordinates
-		cv::Scalar color;                          // Color
+		cv::Vec3f color;                          // Color
 		std::vector<cv::Point> camera_projection;  // Projection location for camera[c]'s FoV (2D)
 		std::vector<int> valid_camera_projection;  // Flag if camera projection is in camera[c]'s FoV
 		int label;
 	};
 
 	//Define 4 colors 
-    cv::Scalar color_tab ={
-        (0,0,255),
-        (0,255,0),
-        (255,0,0),
-        (255,0,255)
+	std::vector <cv::Vec3f> color_tab = {
+		{0,0,255},  //RGB
+		{0,255,0},
+		{255,0,0},
+		{255,0,255}
     };
 
 private:
