@@ -1,4 +1,6 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+make: *** No rule to make target 'all'.  Stop.
+ 
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -6,7 +8,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Mar 10 14:13:15 2022
+# Make data base, printed on Fri Mar 11 19:16:07 2022
 
 # Variables
 
@@ -47,11 +49,11 @@ CURDIR := /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelR
 # makefile
 SHELL = /bin/sh
 # environment
-SNAP_DATA = /var/snap/code/90
+SNAP_DATA = /var/snap/code/91
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-gb","availableLanguages":{},"_languagePackSupport":true}
 # environment
-JOURNAL_STREAM = 8:58485
+JOURNAL_STREAM = 8:59513
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # environment
@@ -77,9 +79,9 @@ DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-_ = /snap/code/90/usr/share/code/code
+_ = /snap/code/91/usr/share/code/code
 # environment
-MANAGERPID = 1630
+MANAGERPID = 1646
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # environment
@@ -87,7 +89,7 @@ LC_NAME = nl_NL.UTF-8
 # environment
 VSCODE_CWD = /home/annadollbo
 # environment
-GSETTINGS_SCHEMA_DIR = /snap/code/90/usr/share/glib-2.0/schemas
+GSETTINGS_SCHEMA_DIR = /snap/code/91/usr/share/glib-2.0/schemas
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
@@ -95,15 +97,15 @@ PATH = /home/annadollbo/.local/bin:/home/annadollbo/.local/bin:/usr/local/sbin:/
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-SESSION_MANAGER = local/annadollbo:@/tmp/.ICE-unix/1920,unix/annadollbo:/tmp/.ICE-unix/1920
+SESSION_MANAGER = local/annadollbo:@/tmp/.ICE-unix/1928,unix/annadollbo:/tmp/.ICE-unix/1928
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
 GDK_PIXBUF_MODULE_FILE = /home/annadollbo/snap/code/common/.cache/gdk-pixbuf-loaders.cache
 # environment
-SNAP = /snap/code/90
+SNAP = /snap/code/91
 # environment
-SNAP_VERSION = 8908a9ca
+SNAP_VERSION = c722ca6c
 # environment
 XDG_MENU_PREFIX = gnome-
 # environment
@@ -113,9 +115,9 @@ DISABLE_WAYLAND = 1
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = 4ba2d3578f9444dbb524cc7c26b41afa
+INVOCATION_ID = 4d175fc07d654bc58a04a7ec10ce1f39
 # environment
-GDK_PIXBUF_MODULEDIR = /snap/code/90/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders
+GDK_PIXBUF_MODULEDIR = /snap/code/91/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -125,7 +127,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 35309
+GIO_LAUNCHED_DESKTOP_FILE_PID = 5548
 # automatic
 %F = $(notdir $%)
 # environment
@@ -139,7 +141,7 @@ PWD = /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelRecon
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 1845
+SSH_AGENT_PID = 1867
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -153,7 +155,7 @@ LESSCLOSE = /usr/bin/lesspipe %s %s
 # environment
 VSCODE_CLI = 1
 # environment
-VSCODE_CODE_CACHE_PATH = /home/annadollbo/.config/Code/CachedData/8908a9ca0f221f36507231afb39d2d8d1e182702
+VSCODE_CODE_CACHE_PATH = /home/annadollbo/.config/Code/CachedData/c722ca6c7eed3d7987c0d5c3df5c45f6b15e77d1
 # environment
 LOGNAME = annadollbo
 # environment
@@ -185,19 +187,19 @@ MAKECMDGOALS := all
 # environment
 QT_IM_MODULE = ibus
 # environment
-SNAP_USER_DATA = /home/annadollbo/snap/code/90
+SNAP_USER_DATA = /home/annadollbo/snap/code/91
 # environment
 SHLVL = 0
 # environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-67412af3-36b6-40e4-ae48-271f324fadf7.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-c948d3be-9d9b-4510-8f7c-fc5ef3389ec4.sock
 # default
 MAKE_VERSION := 4.2.1
 # environment
 USER = annadollbo
 # environment
-SNAP_REVISION = 90
+SNAP_REVISION = 91
 # environment
 LC_MONETARY = nl_NL.UTF-8
 # makefile
@@ -217,7 +219,7 @@ MAKE_COMMAND := make
 # environment
 LANGUAGE = en_GB:en
 # environment
-VSCODE_IPC_HOOK = /run/user/1000/vscode-ed7491f5-1.65.1-main.sock
+VSCODE_IPC_HOOK = /run/user/1000/vscode-ed7491f5-1.65.2-main.sock
 # environment
 BAMF_DESKTOP_FILE_HINT = /var/lib/snapd/desktop/applications/code_code.desktop
 # makefile
@@ -275,11 +277,9 @@ LC_ADDRESS = nl_NL.UTF-8
 # environment
 LANG = C
 # environment
-VSCODE_PID = 35351
+VSCODE_PID = 5590
 # variable set hash-table stats:
 # Load=133/1024=13%, Rehash=0, Collisions=23/155=15%
- 
-make: *** No rule to make target 'all'.  Stop.
  
 
 # Pattern-specific Variable Values
@@ -346,6 +346,6 @@ GNUmakefile:
 # strcache performance: lookups = 27 / hit rate = 11%
 # hash-table stats:
 # Load=24/8192=0%, Rehash=0, Collisions=1/27=4%
-# Finished Make data base on Thu Mar 10 14:13:16 2022
+# Finished Make data base on Fri Mar 11 19:16:07 2022
 
  

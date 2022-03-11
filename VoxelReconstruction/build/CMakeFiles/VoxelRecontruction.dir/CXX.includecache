@@ -63,8 +63,6 @@ opencv2/imgproc/types_c.h
 -
 stddef.h
 -
-Clustering.h
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Clustering.h
 cassert
 -
 iostream
@@ -173,7 +171,7 @@ opencv2/imgproc/imgproc.hpp
 /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/utilities/General.h
 
 /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Reconstructor.h
-opencv2/core/core.hpp
+opencv2/core.hpp
 -
 stddef.h
 -
@@ -227,20 +225,6 @@ Camera.h
 /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Camera.h
 Reconstructor.h
 /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/Reconstructor.h
-
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/arcball.cpp
-arcball.h
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/arcball.h
-Windows.h
--
-GL/gl.h
--
-GL/glu.h
--
-GL/glut.h
--
-GL/glu.h
--
 
 /home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src/controllers/arcball.h
 cmath
@@ -343,10 +327,6 @@ opencv2/core/check.hpp
 /usr/local/include/opencv4/opencv2/core/check.hpp
 opencv2/core/base.hpp
 -
-
-/usr/local/include/opencv4/opencv2/core/core.hpp
-opencv2/core.hpp
-/usr/local/include/opencv4/opencv2/core/opencv2/core.hpp
 
 /usr/local/include/opencv4/opencv2/core/core_c.h
 opencv2/core/types_c.h
