@@ -174,7 +174,7 @@ void Reconstructor::update()
 
 	int v;
 #pragma omp parallel for schedule(static) private(v) shared(visible_voxels)
-	for (v = 0; v < (int) m_voxels_amount; ++v)
+	for (v = 0; v < (int)m_voxels_amount; ++v)
 	{
 		int camera_counter = 0;
 		int camera_counter_frame = 0;
@@ -192,14 +192,14 @@ void Reconstructor::update()
 			}
 		}
 
-		if (countFrames == 10) {
+		if (countFrames == 4) {
 
 			for (size_t c = 0; c < m_cameras.size(); ++c)
 			{
 
-				if (voxel->valid_camera_projection[c])
+				if (voxel->valid_camera_projection[3])
 				{
-					const Point point_frame = voxel->camera_projection[c];
+					const Point point_frame = voxel->camera_projection[3];
 
 					//If there's a white pixel on the foreground image at the projection point, add the camera
 					if (m_cameras[c]->getForegroundImage().at<uchar>(point_frame) == 255) ++camera_counter_frame;
@@ -223,6 +223,7 @@ void Reconstructor::update()
 
 	}
 
+	//OFFLINE PHASE    -- only run once
 	//for frame 514 process labels and centers
 	if (!visible_voxels_frame.empty()) {
 		m_visible_voxels_frame.insert(m_visible_voxels_frame.end(), visible_voxels_frame.begin(), visible_voxels_frame.end());
@@ -234,18 +235,88 @@ void Reconstructor::update()
 		std::vector<int> labels_frame;
 		kmeans(groundCoordinates_frame, 4, labels_frame, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers_frame);
 
+		int label1_occur = count(labels_frame.begin(), labels_frame.end(), 0);
+		int label2_occur = count(labels_frame.begin(), labels_frame.end(), 1);
+		int label3_occur = count(labels_frame.begin(), labels_frame.end(), 2);
+		int label4_occur = count(labels_frame.begin(), labels_frame.end(), 3);
+
 		//get currentframe in img
 		Mat img = m_cameras[3]->getFrame();
-		std::vector<cv::Vec3b> m_bgr;								//vector for storing RGB values for voxel
+		//std::vector<cv::Vec3b> m_bgr; //vector for storing RGB values for voxel
+
+		Mat label1(label1_occur, 3, CV_64FC1);
+		Mat label2(label2_occur, 3, CV_64FC1);
+		Mat label3(label3_occur, 3, CV_64FC1);
+		Mat label4(label4_occur, 3, CV_64FC1);
+
+		int index_label1 = 0;
+		int index_label2 = 0;
+		int index_label3 = 0;
+		int index_label4 = 0;
 
 		//asign m_visible_voxels_frame to labels
 		for (int i = 0; i < m_visible_voxels_frame.size(); i++) {
 			m_visible_voxels_frame[i]->label = labels_frame[i];
+			int label_no = labels_frame[i];
+			//Mat mat_name;
+
 			const Point point_forrgb = m_visible_voxels_frame[i]->camera_projection[3];
-			cv::Vec3b bgr = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-			m_bgr.push_back(bgr);
-			//Mat points(bgr[0], 3, CV_64FC1);
+			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
+			//m_bgr.push_back(bgr);
+
+			//Mat row(1, 3, CV_64FC1);
+			//row.at<double>(0, 0) = static_cast<int>(rgb[0]);
+			//row.at<double>(0, 1) = static_cast<int>(rgb[1]);
+			//row.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+			switch (label_no) {
+			case 0:
+				label1.at<double>(index_label1, 0) = static_cast<int>(rgb[0]);
+				label1.at<double>(index_label1, 1) = static_cast<int>(rgb[1]);
+				label1.at<double>(index_label1, 2) = static_cast<int>(rgb[2]);
+				index_label1++;
+				break;
+			case 1:
+				label2.at<double>(index_label2, 0) = static_cast<int>(rgb[0]);
+				label2.at<double>(index_label2, 1) = static_cast<int>(rgb[1]);
+				label2.at<double>(index_label2, 2) = static_cast<int>(rgb[2]);
+				index_label2++;
+				break;
+			case 2:
+				label3.at<double>(index_label3, 0) = static_cast<int>(rgb[0]);
+				label3.at<double>(index_label3, 1) = static_cast<int>(rgb[1]);
+				label3.at<double>(index_label3, 2) = static_cast<int>(rgb[2]);
+				index_label3++;
+				break;
+			case 3:
+				label4.at<double>(index_label4, 0) = static_cast<int>(rgb[0]);
+				label4.at<double>(index_label4, 1) = static_cast<int>(rgb[1]);
+				label4.at<double>(index_label4, 2) = static_cast<int>(rgb[2]);
+				index_label4++;
+				break;
+			}
+
+
+
+			//cout << row;
+
+			cout << "first: " << static_cast<int>(rgb[0]);
+			cout << "second: " << static_cast<int>(rgb[1]);
+			cout << "third: " << static_cast<int>(rgb[2]);
+			//mat_name.push_back(row);
+
 		}
+
+		cout << "\nFirstlabel: \n" << label1;
+		cout << "\nSecondlabel: \n" << label2;
+		cout << "\nThirdlabel: \n" << label3;
+		cout << "\nFourthlabel: \n" << label4;
+
+		//Concatenate all matrices
+		Mat matArray[] = { label1, label2, label3, label4 }; //Array of all matrices to be combined into one
+		cv::Mat allClustersMat; //new matrix of all values, feed this to GMM model
+		cv::vconcat(matArray, 4, allClustersMat);
+
 
 		//Mat img_2 = m_bgr;
 		//cout << m_bgr[0] << " " << m_bgr[1];
@@ -255,35 +326,37 @@ void Reconstructor::update()
 
 
 		//if we do it like this, with img, we don't use at all kmeans. I am still not sure we need to use with GMM, since for this implementation you only need the frame.
-		
+
 
 		//cv::Vec3f bgr = img.at<cv::Vec3f>(m_visible_voxels_frame[0]);
 		//m_visible_voxels_frame[0]->color = bgr;
 
-		int width = img.cols;
-		int height = img.rows;
-		int dims = img.channels();
+		// int width = img.cols;
+		// int height = img.rows;
+		// int dims = img.channels();
 
-		int no_samples = width * height;
-		Mat points(no_samples, dims, CV_64FC1);
+		// int no_samples = width * height;
+		// Mat points(no_samples, dims, CV_64FC1);
 		Mat labels;
-		Mat result = Mat::zeros(img.size(), CV_8UC3);
+		// Mat result = Mat::zeros(img.size(), CV_8UC3);
+
+		// //Define classification, that is, how many classification points of function K value
+		// int no_clusters = 4;
+
+		// // Find RGB pixel values from image coordinates and assign to points
+		// int index = 0;
+		// for (int row = 0; row < height; row++) {
+		// 	for (int col = 0; col < width; col++) {
+		// 		index = row * width + col;
+		// 		Vec3b rgb = img.at<Vec3b>(row, col);
+		// 		points.at<double>(index, 0) = static_cast<int>(rgb[0]);
+		// 		points.at<double>(index, 1) = static_cast<int>(rgb[1]);
+		// 		points.at<double>(index, 2) = static_cast<int>(rgb[2]);
+		// 	}
+		// }
 
 		//Define classification, that is, how many classification points of function K value
 		int no_clusters = 4;
-
-		// Find RGB pixel values from image coordinates and assign to points
-		int index = 0;
-		for (int row = 0; row < height; row++) {
-			for (int col = 0; col < width; col++) {
-				index = row * width + col;
-				Vec3b rgb = img.at<Vec3b>(row, col);
-				points.at<double>(index, 0) = static_cast<int>(rgb[0]);
-				points.at<double>(index, 1) = static_cast<int>(rgb[1]);
-				points.at<double>(index, 2) = static_cast<int>(rgb[2]);
-			}
-		}
-
 		//Create model  
 		Ptr<EM> GMM_model = EM::create();
 		//Initialise number of clusters to look for 
@@ -293,18 +366,18 @@ void Reconstructor::update()
 		//Set convergence conditions
 		GMM_model->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
 		//Store the probability partition to labs EM according to the sample training
-		GMM_model->trainEM(m_bgr, noArray(), labels, noArray());
+		GMM_model->trainEM(allClustersMat, noArray(), labels, noArray());
 
 		cout << labels;
 
 		//Save model in xml-file
 		GMM_model->save("GMM_model.xml");
 	}
-	
 
+	//ONLINE PHASE
 	//clustering for each frame
 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
-	
+
 	vector<Point2f> groundCoordinates(m_visible_voxels.size());
 
 	for (int i = 0; i < (int)m_visible_voxels.size(); i++) {
@@ -319,28 +392,125 @@ void Reconstructor::update()
 
 	m_labels.assign(labels.begin(), labels.end());
 
-	 //load the GMM_model
+	//load the GMM_model
 	Ptr<EM> GMM_model = EM::load("GMM_model.xml");
 
+	int label1_occur = count(labels.begin(), labels.end(), 0);
+	int label2_occur = count(labels.begin(), labels.end(), 1);
+	int label3_occur = count(labels.begin(), labels.end(), 2);
+	int label4_occur = count(labels.begin(), labels.end(), 3);
+
+	//get currentframe in img
+	Mat img = m_cameras[3]->getFrame();
+	//std::vector<cv::Vec3b> m_bgr; //vector for storing RGB values for voxel
+
+	Mat label1(label1_occur, 3, CV_64FC1);
+	Mat label2(label2_occur, 3, CV_64FC1);
+	Mat label3(label3_occur, 3, CV_64FC1);
+	Mat label4(label4_occur, 3, CV_64FC1);
+
+	int index_label1 = 0;
+	int index_label2 = 0;
+	int index_label3 = 0;
+	int index_label4 = 0;
+
+
+	//asign m_visible_voxels_frame to labels
+	for (int i = 0; i < m_visible_voxels.size(); i++) {
+		m_visible_voxels[i]->label = labels[i];
+		int label_no = labels[i];
+		//Mat mat_name;
+
+		const Point point_forrgb = m_visible_voxels[i]->camera_projection[3];
+		cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
+		//m_bgr.push_back(bgr);
+
+		//Mat row(1, 3, CV_64FC1);
+		//row.at<double>(0, 0) = static_cast<int>(rgb[0]);
+		//row.at<double>(0, 1) = static_cast<int>(rgb[1]);
+		//row.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+		switch (label_no) {
+		case 0:
+			label1.at<double>(index_label1, 0) = static_cast<int>(rgb[0]);
+			label1.at<double>(index_label1, 1) = static_cast<int>(rgb[1]);
+			label1.at<double>(index_label1, 2) = static_cast<int>(rgb[2]);
+			index_label1++;
+			break;
+		case 1:
+			label2.at<double>(index_label2, 0) = static_cast<int>(rgb[0]);
+			label2.at<double>(index_label2, 1) = static_cast<int>(rgb[1]);
+			label2.at<double>(index_label2, 2) = static_cast<int>(rgb[2]);
+			index_label2++;
+			break;
+		case 2:
+			label3.at<double>(index_label3, 0) = static_cast<int>(rgb[0]);
+			label3.at<double>(index_label3, 1) = static_cast<int>(rgb[1]);
+			label3.at<double>(index_label3, 2) = static_cast<int>(rgb[2]);
+			index_label3++;
+			break;
+		case 3:
+			label4.at<double>(index_label4, 0) = static_cast<int>(rgb[0]);
+			label4.at<double>(index_label4, 1) = static_cast<int>(rgb[1]);
+			label4.at<double>(index_label4, 2) = static_cast<int>(rgb[2]);
+			index_label4++;
+			break;
+		}
+
+
+
+		//cout << row;
+
+		//cout << "first: " << static_cast<int>(rgb[0]);
+		//cout << "second: " << static_cast<int>(rgb[1]);
+		//cout << "third: " << static_cast<int>(rgb[2]);
+		//mat_name.push_back(row);
+
+	}
+
+	//cout << "\nFirstlabel: \n" << label1;
+	//cout << "\nSecondlabel: \n" << label2;
+	//cout << "\nThirdlabel: \n" << label3;
+	//cout << "\nFourthlabel: \n" << label4;
+
+	//Create cluster matrices
+	//std::vector <Mat> cluster_matrices;
+	//cluster_matrices.push_back(label1);
+	//cluster_matrices.push_back(label2);
+	//cluster_matrices.push_back(label3);
+	//cluster_matrices.push_back(label4);
+	Mat matArray[] = { label1, label2, label3, label4 }; //Array of all matrices to be combined into one
+	cv::Mat allClustersMat; //new matrix of all values, feed this to GMM model
+	cv::vconcat(matArray, 4, allClustersMat);
 	//vector of cluster matrices
 	//std::vector <Mat> cluster_matrices;
+	int nr_rows = allClustersMat.rows;
 
+	Mat row(1, 3, CV_64FC1);
+	//row= allClustersMat.at<float>(0);
+
+	//cout << "CLusterMAT: \n" << allClustersMat;
+	//cout << allClustersMat.at<Vec3f>(0);
+	//Mat 
 	std::vector <int> predictions;
 
 	////for loop where prediction of color_label happens, important that all voxels have assigned label for which cluster they belong to (0,1,2,3) and that the cluster matrices are order the same
-	//for (int cl = 0; cl < labels.size(); cl++) {
+		for (int r = 0; r < nr_rows; r++) {
+			row.at<double>(0,0) = allClustersMat.at<double>(r, 0);
+			row.at<double>(0,1) = allClustersMat.at<double>(r, 1);
+			row.at<double>(0,2) = allClustersMat.at<double>(r, 2);
+			int prediction = cvRound(GMM_model->predict2(row, noArray())[1]);			//fixed the error, no color on the ouput still :D
+			//cout << allClustersMat.at<int>(1);
+			predictions.push_back(prediction);
+		}
 
-	//	int prediction = cvRound(GMM_model->predict2(cl, noArray())[1]);			//we get an error here. Don't know exactly what is required (indeed I feed the for with labels and not cluster_matrices
-	//	predictions.push_back(prediction);
-	//}
-
-	//for (int i = 0; i < (int)m_visible_voxels.size(); i++) {
-	//	int lb = m_visible_voxels[i]->label;
-	//	int color_index = predictions[lb];
-	//	m_visible_voxels[i]->color = color_tab[color_index];
+	for (int i = 0; i < (int)m_visible_voxels.size(); i++) {
+		int lb = m_visible_voxels[i]->label;
+		int color_index = predictions[lb];
+		m_visible_voxels[i]->color = color_tab[color_index];
 
 
-	//}
+	}
 
 	//cout << centers.at<float>(3,1) << "\n";
 	//for (size_t l = 0; l < labels.size(); l++) {
