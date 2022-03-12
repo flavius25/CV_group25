@@ -206,14 +206,28 @@ void Reconstructor::update()
 
 	}
 
+
+
+	// *O	
+	// *	F
+	// *		F
+	// *			L
+	// *				I
+	// *					N
+	// *						E
+
+
 	//OFFLINE PHASE    -- only run once
 	//for frame 514 process labels and centers
 	if (!visible_voxels_frame.empty()) {
 		//m_visible_voxels_frame.insert(m_visible_voxels_frame.end(), visible_voxels_frame.begin(), visible_voxels_frame.end());
 		vector<Point2f> groundCoordinates_frame(visible_voxels_frame.size());
 		for (int i = 0; i < (int)visible_voxels_frame.size(); i++) {
-			groundCoordinates_frame[i] = Point2f(visible_voxels_frame[i]->x, visible_voxels_frame[i]->y);
-			//cout << groundCoordinates_frame[i];
+			if (visible_voxels_frame[i]->z > (m_height * 2 / 5))		//we only take the points that we are interested in (upper-body)
+			{
+				groundCoordinates_frame[i] = Point2f(visible_voxels_frame[i]->x, visible_voxels_frame[i]->y);
+				//cout << groundCoordinates_frame[i];
+			}
 		}
 		std::vector<int> labels_frame;
 		kmeans(groundCoordinates_frame, 4, labels_frame, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers_frame);
@@ -242,44 +256,43 @@ void Reconstructor::update()
 			visible_voxels_frame[i]->label = labels_frame[i];
 			int label_no = labels_frame[i];
 			//Mat mat_name;
+			//cout << visible_voxels_frame[i]->z;
+
 
 			const Point point_forrgb = visible_voxels_frame[i]->camera_projection[1];
 			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-			//m_bgr.push_back(bgr);
-
-			//Mat row(1, 3, CV_64FC1);
-			//row.at<double>(0, 0) = static_cast<int>(rgb[0]);
-			//row.at<double>(0, 1) = static_cast<int>(rgb[1]);
-			//row.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
 			switch (label_no) {
-			case 0:
+			  case 0:
 				cluster1.at<double>(index_cluster1, 0) = static_cast<int>(rgb[0]);
 				cluster1.at<double>(index_cluster1, 1) = static_cast<int>(rgb[1]);
 				cluster1.at<double>(index_cluster1, 2) = static_cast<int>(rgb[2]);
 				index_cluster1++;
 				break;
-			case 1:
+			  case 1:
 				cluster2.at<double>(index_cluster2, 0) = static_cast<int>(rgb[0]);
 				cluster2.at<double>(index_cluster2, 1) = static_cast<int>(rgb[1]);
 				cluster2.at<double>(index_cluster2, 2) = static_cast<int>(rgb[2]);
 				index_cluster2++;
 				break;
-			case 2:
+			  case 2:
 				cluster3.at<double>(index_cluster3, 0) = static_cast<int>(rgb[0]);
 				cluster3.at<double>(index_cluster3, 1) = static_cast<int>(rgb[1]);
 				cluster3.at<double>(index_cluster3, 2) = static_cast<int>(rgb[2]);
 				index_cluster3++;
 				break;
-			case 3:
+			  case 3:
 				cluster4.at<double>(index_cluster4, 0) = static_cast<int>(rgb[0]);
 				cluster4.at<double>(index_cluster4, 1) = static_cast<int>(rgb[1]);
 				cluster4.at<double>(index_cluster4, 2) = static_cast<int>(rgb[2]);
 				index_cluster4++;
 				break;
-			}
+			  }
+		}
 
-
+					//How to implement less voxels idea: so we need the Mat we are pushing these two to be the exact size 
+					//(maybe double check first that it wouldnt work with only putting zeros at the empty places) but basically we can use the decreasing value of clusterX_occur 
+					//to determine how many elements are missing from the matrix, n then deleting the last rows of the matrix based on this. 
 
 			//cout << row;
 
@@ -287,8 +300,6 @@ void Reconstructor::update()
 			//cout << "second: " << static_cast<int>(rgb[1]);
 			//cout << "third: " << static_cast<int>(rgb[2]);
 			//mat_name.push_back(row);
-
-		}
 
 		//cout << "\nFirstlabel: \n" << cluster1;
 		//cout << "\nSecondlabel: \n" << cluster2;
@@ -302,7 +313,7 @@ void Reconstructor::update()
 		//m_labels_frame.assign(labels_frame.begin(), labels_frame.end());
 
 		//Put number of clusters to 3 here, corresponding to number of color components, as each person has roughly 3 specific colors
-		int no_clusters = 4;
+		int no_clusters = 2;
 
 		//Create model 1
 		Ptr<EM> GMM_model1 = EM::create();
@@ -347,14 +358,35 @@ void Reconstructor::update()
 		GMM_model4->save("GMM_model4.xml");
 	}
 
+
+
+
+
+
+	// *O	
+	// *	N
+	// *		L
+	// *			I
+	// *				N
+	// *					E
+
+
+
+
+
 	//ONLINE PHASE
-	//clustering for each frame
-	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
+
 
 	vector<Point2f> groundCoordinates(visible_voxels.size());
+	//m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end()); //I needed to comment this and add it at line 388 in for, so we can see the actual upper-body voxels
 
 	for (int i = 0; i < (int)visible_voxels.size(); i++) {
-		groundCoordinates[i] = Point2f(visible_voxels[i]->x, visible_voxels[i]->y);
+		if (visible_voxels[i]->z > (m_height * 2 / 5)) {
+			//cout << "This is true";
+			groundCoordinates[i] = Point2f(visible_voxels[i]->x, visible_voxels[i]->y);
+			//clustering for each frame
+			m_visible_voxels.push_back(visible_voxels[i]);			//to see upper-body voxels
+		}
 	}
 
 	std::vector<int> labels;								//labels
@@ -394,33 +426,34 @@ void Reconstructor::update()
 		const Point point_forrgb = visible_voxels[i]->camera_projection[1];
 		cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
 
-		switch (label_no) {
-		case 0:
-			cluster1.at<double>(index_cluster1, 0) = static_cast<int>(rgb[0]);
-			cluster1.at<double>(index_cluster1, 1) = static_cast<int>(rgb[1]);
-			cluster1.at<double>(index_cluster1, 2) = static_cast<int>(rgb[2]);
-			index_cluster1++;
-			break;
-		case 1:
-			cluster2.at<double>(index_cluster2, 0) = static_cast<int>(rgb[0]);
-			cluster2.at<double>(index_cluster2, 1) = static_cast<int>(rgb[1]);
-			cluster2.at<double>(index_cluster2, 2) = static_cast<int>(rgb[2]);
-			index_cluster2++;
-			break;
-		case 2:
-			cluster3.at<double>(index_cluster3, 0) = static_cast<int>(rgb[0]);
-			cluster3.at<double>(index_cluster3, 1) = static_cast<int>(rgb[1]);
-			cluster3.at<double>(index_cluster3, 2) = static_cast<int>(rgb[2]);
-			index_cluster3++;
-			break;
-		case 3:
-			cluster4.at<double>(index_cluster4, 0) = static_cast<int>(rgb[0]);
-			cluster4.at<double>(index_cluster4, 1) = static_cast<int>(rgb[1]);
-			cluster4.at<double>(index_cluster4, 2) = static_cast<int>(rgb[2]);
-			index_cluster4++;
-			break;
-		}
+			switch (label_no) {
+			case 0:
+				cluster1.at<double>(index_cluster1, 0) = static_cast<int>(rgb[0]);
+				cluster1.at<double>(index_cluster1, 1) = static_cast<int>(rgb[1]);
+				cluster1.at<double>(index_cluster1, 2) = static_cast<int>(rgb[2]);
+				index_cluster1++;
+				break;
+			case 1:
+				cluster2.at<double>(index_cluster2, 0) = static_cast<int>(rgb[0]);
+				cluster2.at<double>(index_cluster2, 1) = static_cast<int>(rgb[1]);
+				cluster2.at<double>(index_cluster2, 2) = static_cast<int>(rgb[2]);
+				index_cluster2++;
+				break;
+			case 2:
+				cluster3.at<double>(index_cluster3, 0) = static_cast<int>(rgb[0]);
+				cluster3.at<double>(index_cluster3, 1) = static_cast<int>(rgb[1]);
+				cluster3.at<double>(index_cluster3, 2) = static_cast<int>(rgb[2]);
+				index_cluster3++;
+				break;
+			case 3:
+				cluster4.at<double>(index_cluster4, 0) = static_cast<int>(rgb[0]);
+				cluster4.at<double>(index_cluster4, 1) = static_cast<int>(rgb[1]);
+				cluster4.at<double>(index_cluster4, 2) = static_cast<int>(rgb[2]);
+				index_cluster4++;
+				break;
+			}
 
+	}
 
 
 		//cout << row;
@@ -430,7 +463,6 @@ void Reconstructor::update()
 		//cout << "third: " << static_cast<int>(rgb[2]);
 		//mat_name.push_back(row);
 
-	}
 
 	//cout << "\nFirstlabel: \n" << cluster1;
 	//cout << "\nSecondlabel: \n" << cluster2;
