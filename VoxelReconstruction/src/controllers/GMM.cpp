@@ -196,12 +196,9 @@
 // 		if (camera_counter == m_cameras.size())
 // 		{
 // #pragma omp critical //push_back is critical
-// 			visible_voxels.push_back(voxel);
-// 			// cout << "Gets through here!";
-// 			// cout << countFrames; 			//for online
+// 			visible_voxels.push_back(voxel);			//for online
 // 			if (countFrames == 4)
 // 			{
-// 				//cout << "Gets through here!";
 // #pragma omp critical //push_back is critical
 // 				visible_voxels_frame.push_back(voxel);	//for offline
 // 			}
@@ -210,8 +207,6 @@
 // 	}
 
 
-
-// 	//cout << "Gets through here!";
 
 // 	// *O	
 // 	// *	F
@@ -228,84 +223,54 @@
 // 		//m_visible_voxels_frame.insert(m_visible_voxels_frame.end(), visible_voxels_frame.begin(), visible_voxels_frame.end());
 // 		vector<Point2f> groundCoordinates_frame(visible_voxels_frame.size());
 // 		for (int i = 0; i < (int)visible_voxels_frame.size(); i++) {
-// 			groundCoordinates_frame[i] = Point2f(visible_voxels_frame[i]->x, visible_voxels_frame[i]->y);
-// 			//cout << groundCoordinates_frame[i];
+// 			if (visible_voxels_frame[i]->z > (m_height * 2 / 5))		//we only take the points that we are interested in (upper-body)
+// 			{
+// 				groundCoordinates_frame[i] = Point2f(visible_voxels_frame[i]->x, visible_voxels_frame[i]->y);
+// 			}
 // 		}
 // 		std::vector<int> labels_frame;
 // 		kmeans(groundCoordinates_frame, 4, labels_frame, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers_frame);
 
-// 		int cluster1_occur = count(labels_frame.begin(), labels_frame.end(), 0);
-// 		int cluster2_occur = count(labels_frame.begin(), labels_frame.end(), 1);
-// 		int cluster3_occur = count(labels_frame.begin(), labels_frame.end(), 2);
-// 		int cluster4_occur = count(labels_frame.begin(), labels_frame.end(), 3);
-
 // 		//get currentframe in img
 // 		Mat img = m_cameras[1]->getFrame();
 // 		//std::vector<cv::Vec3b> m_bgr; //vector for storing RGB values for voxel
-// 					//(cluster1_occur, 3, CV_64FC1)
+
 // 		Mat cluster1;
 // 		Mat cluster2;
 // 		Mat cluster3;
 // 		Mat cluster4;
 
-// 		int index_cluster1 = 0;
-// 		int index_cluster2 = 0;
-// 		int index_cluster3 = 0;
-// 		int index_cluster4 = 0;
-
 // 		//asign m_visible_voxels_frame to labels
 // 		for (int i = 0; i < visible_voxels_frame.size(); i++) {
 // 			visible_voxels_frame[i]->label = labels_frame[i];
 // 			int label_no = labels_frame[i];
-// 			//Mat mat_name;
-			
-// 			if (visible_voxels_frame[i]->z > (m_height * 2/5))
-// 					{
-// 						const Point point_forrgb = visible_voxels_frame[i]->camera_projection[1];
-// 						cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-// 						// Mat row(1, 3, CV_64FC1);
-// 						// row.at<double>(0, 0) = static_cast<int>(rgb[0]);
-// 						// row.at<double>(0, 1) = static_cast<int>(rgb[1]);
-// 						// row.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
-// 						switch (label_no) {
-// 						case 0:
-// 							cluster1.at<double>(index_cluster2, 0) = static_cast<int>(rgb[0]);
-// 							cluster1.at<double>(index_cluster2, 1) = static_cast<int>(rgb[1]);
-// 							cluster1.at<double>(index_cluster2, 2) = static_cast<int>(rgb[2]);
-// 							index_cluster1++;
-// 							cluster1_occur--;
-// 							//cluster1.push_back(row); 
-// 							break;
-// 						case 1:
-// 							cluster2.at<double>(index_cluster2, 0) = static_cast<int>(rgb[0]);
-// 							cluster2.at<double>(index_cluster2, 1) = static_cast<int>(rgb[1]);
-// 							cluster2.at<double>(index_cluster2, 2) = static_cast<int>(rgb[2]);
-// 							index_cluster2++;
-// 							cluster2_occur--;
-// 							break;
-// 						case 2:
-// 							cluster3.at<double>(index_cluster3, 0) = static_cast<int>(rgb[0]);
-// 							cluster3.at<double>(index_cluster3, 1) = static_cast<int>(rgb[1]);
-// 							cluster3.at<double>(index_cluster3, 2) = static_cast<int>(rgb[2]);
-// 							index_cluster3++;
-// 							cluster3_occur--;
-// 							break;
-// 						case 3:
-// 							cluster4.at<double>(index_cluster4, 0) = static_cast<int>(rgb[0]);
-// 							cluster4.at<double>(index_cluster4, 1) = static_cast<int>(rgb[1]);
-// 							cluster4.at<double>(index_cluster4, 2) = static_cast<int>(rgb[2]);
-// 							index_cluster4++;
-// 							cluster4_occur--;
-// 							break;
-// 						}
-// 					}
+// 			const Point point_forrgb = visible_voxels[i]->camera_projection[1];
+// 			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
+// 			Mat rgb_r(1, 3, CV_64FC1);
+// 			rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
+// 			rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+// 			rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
-					
+// 			switch (label_no) {
+// 			case 0:
+// 				cluster1.push_back(rgb_r);
+// 				break;
+// 			case 1:
+// 				cluster2.push_back(rgb_r);
+// 				break;
+// 			case 2:
+// 				cluster3.push_back(rgb_r);
+// 				break;
+// 			case 3:
+// 				cluster4.push_back(rgb_r);
+// 				break;
+// 			}
+// 		}
+
 // 					//How to implement less voxels idea: so we need the Mat we are pushing these two to be the exact size 
 // 					//(maybe double check first that it wouldnt work with only putting zeros at the empty places) but basically we can use the decreasing value of clusterX_occur 
 // 					//to determine how many elements are missing from the matrix, n then deleting the last rows of the matrix based on this. 
-
 
 // 			//cout << row;
 
@@ -313,8 +278,6 @@
 // 			//cout << "second: " << static_cast<int>(rgb[1]);
 // 			//cout << "third: " << static_cast<int>(rgb[2]);
 // 			//mat_name.push_back(row);
-
-// 		}
 
 // 		//cout << "\nFirstlabel: \n" << cluster1;
 // 		//cout << "\nSecondlabel: \n" << cluster2;
@@ -328,7 +291,7 @@
 // 		//m_labels_frame.assign(labels_frame.begin(), labels_frame.end());
 
 // 		//Put number of clusters to 3 here, corresponding to number of color components, as each person has roughly 3 specific colors
-// 		int no_clusters = 4;
+// 		int no_clusters = 3;
 
 // 		//Create model 1
 // 		Ptr<EM> GMM_model1 = EM::create();
@@ -367,10 +330,10 @@
 // 		//cout << labels;
 
 // 		//Save model in xml-file
-// 		GMM_model1->save("GMM_model1.xml");
-// 		GMM_model2->save("GMM_model2.xml");
-// 		GMM_model3->save("GMM_model3.xml");
-// 		GMM_model4->save("GMM_model4.xml");
+// 		GMM_model1->save("../GMM_model1.xml");
+// 		GMM_model2->save("../GMM_model2.xml");
+// 		GMM_model3->save("../GMM_model3.xml");
+// 		GMM_model4->save("../GMM_model4.xml");
 // 	}
 
 
@@ -390,16 +353,16 @@
 
 
 // 	//ONLINE PHASE
-// 	//clustering for each frame
-// 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
+
 
 // 	vector<Point2f> groundCoordinates(visible_voxels.size());
+// 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end()); //I needed to comment this and add it at line 388 in for, so we can see the actual upper-body voxels
 
 // 	for (int i = 0; i < (int)visible_voxels.size(); i++) {
-// 		groundCoordinates[i] = Point2f(visible_voxels[i]->x, visible_voxels[i]->y);
+// 			groundCoordinates[i] = Point2f(visible_voxels[i]->x, visible_voxels[i]->y);
 // 	}
 
-// 	std::vector<int> labels;								//labels
+// 	std::vector<int> labels;											//labels
 
 // 	kmeans(groundCoordinates, 4, labels, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
 
@@ -422,85 +385,41 @@
 // 		visible_voxels[i]->label = labels[i];
 // 		int label_no = labels[i];
 
-
-// 		if (visible_voxels[i]->z > (m_height * 2/5)){
-
+// 		if (visible_voxels[i]->z > (m_height * 2 / 5))
+// 		{
+// 			//cout << "This is true";
 // 			const Point point_forrgb = visible_voxels[i]->camera_projection[1];
 // 			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-// 			Mat row(1, 3, CV_64FC1);
-// 			row.at<double>(0, 0) = static_cast<int>(rgb[0]);
-// 			row.at<double>(0, 1) = static_cast<int>(rgb[1]);
-// 			row.at<double>(0, 2) = static_cast<int>(rgb[2]);
-
+// 			Mat rgb_r(1, 3, CV_64FC1);
+// 			rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
+// 			rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+// 			rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
 // 			switch (label_no) {
 // 			case 0:
-// 				cluster1.push_back(row);
+// 				cluster1.push_back(rgb_r);
 // 				break;
 // 			case 1:
-// 				cluster2.push_back(row);
+// 				cluster2.push_back(rgb_r);
 // 				break;
 // 			case 2:
-// 				cluster3.push_back(row);
+// 				cluster3.push_back(rgb_r);
 // 				break;
 // 			case 3:
-// 				cluster4.push_back(row);
+// 				cluster4.push_back(rgb_r);
 // 				break;
 // 			}
-
 // 		}
-		
+
 // 	}
 
-// 	//cout << cluster1; 
 
-// 	// vector <Mat> matVec = {cluster1, cluster2, cluster3, cluster4}; // Vector of matrices to remove rows from
-// 	// vector <int> n_rows_to_remove = {cluster1_occur, cluster2_occur, cluster3_occur, cluster4_occur};
-// 	// for (int i = 0; i < matVec.size(); ++i){
-// 	// 	int n = n_rows_to_remove[i];
-// 	// 	int nr_rows = matVec[i].rows;
-// 	// 	while (n > 0){
-// 	// 		matVec[i].at<double>(nr_rows-1-n) = 0; 
-// 	// 		n--;
-// 	// 		}
+// 		//cout << row;
 
-// 	//}
-
-
-// 			//for (auto it = matVec[i].crbegin() ; it != matVec[i].crend(); ++it) {
-
-
-
-
-
-
-
-
-// 	// vector <Mat> matVec = {cluster1, cluster2, cluster3, cluster4}; // Vector of matrices to remove rows from
-// 	// vector <int> n_rows_to_remove = {cluster1_occur, cluster2_occur, cluster3_occur, cluster4_occur}; 	//Vector that decides how many rows to delete from each matrix
-// 	// vector <Mat> newMats; // vector of new matrices
-
-// 	// for (int i = 0; i < matVec.size(); ++i){
-		
-// 	// 		// Removing a row
-// 	// 	cv::Mat matIn = matVec[i];    // Matrix of which a row will be deleted.
-// 	// 	int row;          // Row to delete.
-// 	// 	cv::Mat matOut;   // Result: matIn less that one row.
-
-// 	// 	if ( row > 0 ) // Copy everything above that one row.
-// 	// 	{
-// 	// 		cv::Rect rect( 0, 0, size.width, row );
-// 	// 		matIn( rect ).copyTo( matOut( rect ) );
-// 	// 	}
-
-// 	// 	if ( row < size.height - 1 ) // Copy everything below that one row.
-// 	// 	{
-// 	// 		cv::Rect rect1( 0, row + 1, size.width, size.height - row - 1 );
-// 	// 		cv::Rect rect2( 0, row, size.width, size.height - row - 1 );
-// 	// 		matIn( rect1 ).copyTo( matOut( rect2 ) );
-// 	// }
-		
-// 	// }
+// 		//cout << "first: " << static_cast<int>(rgb[0]);
+// 		//cout << "second: " << static_cast<int>(rgb[1]);
+// 		//cout << "third: " << static_cast<int>(rgb[2]);
+// 		//mat_name.push_back(row);
 
 
 // 	//cout << "\nFirstlabel: \n" << cluster1;
@@ -508,7 +427,7 @@
 // 	//cout << "\nThirdlabel: \n" << cluster3;
 // 	//cout << "\nFourthlabel: \n" << cluster4;
 
-// 	vector <Mat> matVec = {cluster1, cluster2, cluster3, cluster4}; // Vector of matrices to be put through the GMM models. 
+// 	vector <Mat> matVec = { cluster1, cluster2, cluster3, cluster4 }; //Array of all matrices to be combined into one
 
 // 	//vector of cluster matrices
 // 	//std::vector <Mat> cluster_matrices;
@@ -517,8 +436,8 @@
 // 	//cout << "CLusterMAT: \n" << allClustersMat;
 // 	//cout << allClustersMat.at<Vec3f>(0);
 // 	//Mat 
-// 	vector <int> final_labels;
-// 	cout << "goes here!"; 
+// 	vector <int> final_labels; 
+// 	vector <vector<float>> likelihoods; 
 
 // 	for (int m = 0; m < matVec.size(); m++){
 // 		int nr_rows = matVec[m].rows;
@@ -533,11 +452,20 @@
 // 			sums[2] += GMM_model3->predict2(row, noArray())[0];
 // 			sums[3] += GMM_model4->predict2(row, noArray())[0];
 // 		}
+// 		likelihoods.push_back(sums);
 // 		int maxElementIndex = std::max_element(sums.begin(), sums.end()) - sums.begin(); //calculated once
-// 		final_labels.push_back(maxElementIndex);										 //we always put maxElementIndex
+// 		final_labels.push_back(maxElementIndex);  //we always put maxElementIndex
 // 	}
-	
 
+// 	vector <int> copyFL = final_labels; 
+// 	sort(copyFL.begin(), copyFL.end());
+// 	auto it = unique(copyFL.begin(), copyFL.end());
+// 	if (it != copyFL.end()){
+// 		cout << "Here";
+// 	}
+   
+ 
+  
 // 	//Need check here for double assignation -> perhaps if double assignation remake/refine GMM models with only upper torso, otherwise try kmeans with 3 clusters?
 
 // 	// ////for loop where prediction of color_label happens, important that all voxels have assigned label for which cluster they belong to (0,1,2,3) and that the cluster matrices are order the same

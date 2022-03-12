@@ -6,6 +6,7 @@
  */
 
 #include "Reconstructor.h"
+#include "Hungarian.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/mat.hpp>
@@ -168,7 +169,7 @@ void Reconstructor::update()
 	//	imshow("frame2", act_frame);
 	//}
 	m_visible_voxels.clear();
-	m_visible_voxels_frame.clear();
+	//m_visible_voxels_frame.clear();
 	std::vector<Voxel*> visible_voxels;
 	std::vector<Voxel*> visible_voxels_frame;
 
@@ -235,10 +236,10 @@ void Reconstructor::update()
 		Mat img = m_cameras[1]->getFrame();
 		//std::vector<cv::Vec3b> m_bgr; //vector for storing RGB values for voxel
 
-		Mat cluster1;
-		Mat cluster2;
-		Mat cluster3;
-		Mat cluster4;
+		Mat samples1;
+		Mat samples2;
+		Mat samples3;
+		Mat samples4;
 
 		//asign m_visible_voxels_frame to labels
 		for (int i = 0; i < visible_voxels_frame.size(); i++) {
@@ -254,16 +255,16 @@ void Reconstructor::update()
 
 			switch (label_no) {
 			case 0:
-				cluster1.push_back(rgb_r);
+				samples1.push_back(rgb_r);
 				break;
 			case 1:
-				cluster2.push_back(rgb_r);
+				samples2.push_back(rgb_r);
 				break;
 			case 2:
-				cluster3.push_back(rgb_r);
+				samples3.push_back(rgb_r);
 				break;
 			case 3:
-				cluster4.push_back(rgb_r);
+				samples4.push_back(rgb_r);
 				break;
 			}
 		}
@@ -302,7 +303,7 @@ void Reconstructor::update()
 		//Set convergence conditions
 		GMM_model1->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
 		//Store the probability partition to labs EM according to the sample training
-		GMM_model1->trainEM(cluster1);
+		GMM_model1->trainEM(samples1);
 
 
 		//Create model 2  
@@ -310,7 +311,7 @@ void Reconstructor::update()
 		GMM_model2->setClustersNumber(no_clusters);
 		GMM_model2->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
 		GMM_model2->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
-		GMM_model2->trainEM(cluster2);
+		GMM_model2->trainEM(samples2);
 
 
 		//Create model 3 
@@ -318,7 +319,7 @@ void Reconstructor::update()
 		GMM_model3->setClustersNumber(no_clusters);
 		GMM_model3->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
 		GMM_model3->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
-		GMM_model3->trainEM(cluster3);
+		GMM_model3->trainEM(samples3);
 
 
 		//Create model 4
@@ -326,14 +327,14 @@ void Reconstructor::update()
 		GMM_model4->setClustersNumber(no_clusters);
 		GMM_model4->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
 		GMM_model4->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
-		GMM_model4->trainEM(cluster4);
+		GMM_model4->trainEM(samples4);
 		//cout << labels;
 
 		//Save model in xml-file
-		GMM_model1->save("../GMM_model1.xml");
-		GMM_model2->save("../GMM_model2.xml");
-		GMM_model3->save("../GMM_model3.xml");
-		GMM_model4->save("../GMM_model4.xml");
+		GMM_model1->save("GMM_model1.xml");
+		GMM_model2->save("GMM_model2.xml");
+		GMM_model3->save("GMM_model3.xml");
+		GMM_model4->save("GMM_model4.xml");
 	}
 
 
@@ -375,10 +376,10 @@ void Reconstructor::update()
 	//get currentframe in img
 	Mat img = m_cameras[1]->getFrame();
 
-	Mat cluster1;
-	Mat cluster2;
-	Mat cluster3;
-	Mat cluster4;
+	Mat samples1;
+	Mat samples2;
+	Mat samples3;
+	Mat samples4;
 
 	//asign m_visible_voxels to labels
 	for (int i = 0; i < visible_voxels.size(); i++) {
@@ -397,16 +398,16 @@ void Reconstructor::update()
 
 			switch (label_no) {
 			case 0:
-				cluster1.push_back(rgb_r);
+				samples1.push_back(rgb_r);
 				break;
 			case 1:
-				cluster2.push_back(rgb_r);
+				samples2.push_back(rgb_r);
 				break;
 			case 2:
-				cluster3.push_back(rgb_r);
+				samples3.push_back(rgb_r);
 				break;
 			case 3:
-				cluster4.push_back(rgb_r);
+				samples4.push_back(rgb_r);
 				break;
 			}
 		}
@@ -427,7 +428,7 @@ void Reconstructor::update()
 	//cout << "\nThirdlabel: \n" << cluster3;
 	//cout << "\nFourthlabel: \n" << cluster4;
 
-	vector <Mat> matVec = { cluster1, cluster2, cluster3, cluster4 }; //Array of all matrices to be combined into one
+	vector <Mat> matVec = { samples1, samples2, samples3, samples4 }; //Array of all matrices to be combined into one
 
 	//vector of cluster matrices
 	//std::vector <Mat> cluster_matrices;
@@ -436,25 +437,35 @@ void Reconstructor::update()
 	//cout << "CLusterMAT: \n" << allClustersMat;
 	//cout << allClustersMat.at<Vec3f>(0);
 	//Mat 
+
 	vector <int> final_labels; 
+	vector <vector <double>> costMatrix;
 
 	for (int m = 0; m < matVec.size(); m++){
 		int nr_rows = matVec[m].rows;
-		vector <float> sums = {0.0, 0.0, 0.0, 0.0};
+		vector <double> sums = {0.0, 0.0, 0.0, 0.0};
 		for (int r = 0; r < nr_rows; r++){
 			Mat row(1, 3, CV_64FC1);
 			row.at<double>(0,0) = matVec[m].at<double>(r, 0);
 			row.at<double>(0,1) = matVec[m].at<double>(r, 1);
 			row.at<double>(0,2) = matVec[m].at<double>(r, 2);
-			sums[0] += GMM_model1->predict2(row, noArray())[0];
-			sums[1] += GMM_model2->predict2(row, noArray())[0];
-			sums[2] += GMM_model3->predict2(row, noArray())[0];
-			sums[3] += GMM_model4->predict2(row, noArray())[0];
+			sums[0] += abs(GMM_model1->predict2(row, noArray())[0]);
+			sums[1] += abs(GMM_model2->predict2(row, noArray())[0]);
+			sums[2] += abs(GMM_model3->predict2(row, noArray())[0]);
+			sums[3] += abs(GMM_model4->predict2(row, noArray())[0]);
 		}
-		int maxElementIndex = std::max_element(sums.begin(), sums.end()) - sums.begin(); //calculated once
-		final_labels.push_back(maxElementIndex);										 //we always put maxElementIndex
+		costMatrix.push_back(sums);
 	}
+
+	HungarianAlgorithm HungAlgo;
+
+	//find label for each sample
+	double cost = HungAlgo.Solve(costMatrix, final_labels);
 	
+	//for (unsigned int x = 0; x < costMatrix.size(); x++)
+	//	std::cout << x << "," << final_labels[x] << "\t";
+
+	//std::cout << "\ncost: " << cost << std::endl;
 
 	//Need check here for double assignation -> perhaps if double assignation remake/refine GMM models with only upper torso, otherwise try kmeans with 3 clusters?
 
