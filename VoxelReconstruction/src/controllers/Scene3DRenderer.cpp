@@ -143,7 +143,7 @@ void Scene3DRenderer::processForeground(
 	camera->pBackSub->apply(video_frame, foregroundMask, 0); //learningrate is 0, we don't want to "learn" at this stage
 
 	//post_processing (perform opening with 3x3)
-	int morph_size = 1;
+	int morph_size = 2;
 	Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2 * morph_size + 1, 2 * morph_size + 1), Point(morph_size, morph_size));
 	morphologyEx(foregroundMask, foregroundMask, 2, element); //operation 2 for opening = erosion + dilation (smoothing the image)
 

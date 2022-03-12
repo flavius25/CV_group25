@@ -856,7 +856,7 @@ void Glut::drawVoxels()
 	for (size_t v = 0; v < voxels.size(); v++)
 	{
 		//Take the rgb values that are stored in each voxel
-		glColor3f(voxels[v]->color[0], voxels[v]->color[1],voxels[v]->color[2]); //1.0f, 0.5f, 0.0f, 0.0f 
+		glColor3f(voxels[v]->color[2], voxels[v]->color[1],voxels[v]->color[0]); //1.0f, 0.5f, 0.0f, 0.0f 
 		glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
 	}
 

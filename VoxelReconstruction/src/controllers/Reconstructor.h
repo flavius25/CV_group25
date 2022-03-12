@@ -8,7 +8,7 @@
 #ifndef RECONSTRUCTOR_H_
 #define RECONSTRUCTOR_H_
 
-#include <opencv2/core.hpp>
+#include <opencv2/core/core.hpp>
 #include <stddef.h>
 #include <vector>
 
@@ -34,11 +34,11 @@ public:
 	};
 
 	//Define 4 colors 
-    std::vector <cv::Vec3f> color_tab ={
-        {0,0,255},
-        {0,255,0},
-        {255,0,0},
-        {255,0,255}
+	std::vector <cv::Vec3f> color_tab = {
+		{0,0,255},  //RGB
+		{0,255,0},
+		{255,0,0},
+		{255,0,255}
     };
 
 private:

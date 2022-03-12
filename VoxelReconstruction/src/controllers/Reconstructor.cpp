@@ -223,78 +223,54 @@ void Reconstructor::update()
 		//m_visible_voxels_frame.insert(m_visible_voxels_frame.end(), visible_voxels_frame.begin(), visible_voxels_frame.end());
 		vector<Point2f> groundCoordinates_frame(visible_voxels_frame.size());
 		for (int i = 0; i < (int)visible_voxels_frame.size(); i++) {
-			groundCoordinates_frame[i] = Point2f(visible_voxels_frame[i]->x, visible_voxels_frame[i]->y);
-			//cout << groundCoordinates_frame[i];
+			if (visible_voxels_frame[i]->z > (m_height * 2 / 5))		//we only take the points that we are interested in (upper-body)
+			{
+				groundCoordinates_frame[i] = Point2f(visible_voxels_frame[i]->x, visible_voxels_frame[i]->y);
+			}
 		}
 		std::vector<int> labels_frame;
 		kmeans(groundCoordinates_frame, 4, labels_frame, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers_frame);
-
-		int cluster1_occur = count(labels_frame.begin(), labels_frame.end(), 0);
-		int cluster2_occur = count(labels_frame.begin(), labels_frame.end(), 1);
-		int cluster3_occur = count(labels_frame.begin(), labels_frame.end(), 2);
-		int cluster4_occur = count(labels_frame.begin(), labels_frame.end(), 3);
 
 		//get currentframe in img
 		Mat img = m_cameras[1]->getFrame();
 		//std::vector<cv::Vec3b> m_bgr; //vector for storing RGB values for voxel
 
-		Mat cluster1(cluster1_occur, 3, CV_64FC1);
-		Mat cluster2(cluster2_occur, 3, CV_64FC1);
-		Mat cluster3(cluster3_occur, 3, CV_64FC1);
-		Mat cluster4(cluster4_occur, 3, CV_64FC1);
-
-		int index_cluster1 = 0;
-		int index_cluster2 = 0;
-		int index_cluster3 = 0;
-		int index_cluster4 = 0;
+		Mat cluster1;
+		Mat cluster2;
+		Mat cluster3;
+		Mat cluster4;
 
 		//asign m_visible_voxels_frame to labels
 		for (int i = 0; i < visible_voxels_frame.size(); i++) {
 			visible_voxels_frame[i]->label = labels_frame[i];
 			int label_no = labels_frame[i];
-			//Mat mat_name;
-			
-			if (m_visible_voxels_frame[i]->z > (m_height * 2/5))
-					{
-						const Point point_forrgb = m_visible_voxels_frame[i]->camera_projection[1];
-						cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
 
-						switch (label_no) {
-						case 0:
-							cluster1.at<double>(index_cluster1, 0) = static_cast<int>(rgb[0]);
-							cluster1.at<double>(index_cluster1, 1) = static_cast<int>(rgb[1]);
-							cluster1.at<double>(index_cluster1, 2) = static_cast<int>(rgb[2]);
-							index_cluster1++;
-							cluster1_occur--; 
-							break;
-						case 1:
-							cluster2.at<double>(index_cluster2, 0) = static_cast<int>(rgb[0]);
-							cluster2.at<double>(index_cluster2, 1) = static_cast<int>(rgb[1]);
-							cluster2.at<double>(index_cluster2, 2) = static_cast<int>(rgb[2]);
-							index_cluster2++;
-							cluster2_occur--;
-							break;
-						case 2:
-							cluster3.at<double>(index_cluster3, 0) = static_cast<int>(rgb[0]);
-							cluster3.at<double>(index_cluster3, 1) = static_cast<int>(rgb[1]);
-							cluster3.at<double>(index_cluster3, 2) = static_cast<int>(rgb[2]);
-							index_cluster3++;
-							cluster3_occur--;
-							break;
-						case 3:
-							cluster4.at<double>(index_cluster4, 0) = static_cast<int>(rgb[0]);
-							cluster4.at<double>(index_cluster4, 1) = static_cast<int>(rgb[1]);
-							cluster4.at<double>(index_cluster4, 2) = static_cast<int>(rgb[2]);
-							index_cluster4++;
-							cluster4_occur--;
-							break;
-						}
-					}
+			const Point point_forrgb = visible_voxels[i]->camera_projection[1];
+			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
+			Mat rgb_r(1, 3, CV_64FC1);
+			rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
+			rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+			rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+			switch (label_no) {
+			case 0:
+				cluster1.push_back(rgb_r);
+				break;
+			case 1:
+				cluster2.push_back(rgb_r);
+				break;
+			case 2:
+				cluster3.push_back(rgb_r);
+				break;
+			case 3:
+				cluster4.push_back(rgb_r);
+				break;
+			}
+		}
 
 					//How to implement less voxels idea: so we need the Mat we are pushing these two to be the exact size 
 					//(maybe double check first that it wouldnt work with only putting zeros at the empty places) but basically we can use the decreasing value of clusterX_occur 
 					//to determine how many elements are missing from the matrix, n then deleting the last rows of the matrix based on this. 
-
 
 			//cout << row;
 
@@ -302,8 +278,6 @@ void Reconstructor::update()
 			//cout << "second: " << static_cast<int>(rgb[1]);
 			//cout << "third: " << static_cast<int>(rgb[2]);
 			//mat_name.push_back(row);
-
-		}
 
 		//cout << "\nFirstlabel: \n" << cluster1;
 		//cout << "\nSecondlabel: \n" << cluster2;
@@ -317,7 +291,7 @@ void Reconstructor::update()
 		//m_labels_frame.assign(labels_frame.begin(), labels_frame.end());
 
 		//Put number of clusters to 3 here, corresponding to number of color components, as each person has roughly 3 specific colors
-		int no_clusters = 4;
+		int no_clusters = 3;
 
 		//Create model 1
 		Ptr<EM> GMM_model1 = EM::create();
@@ -356,10 +330,10 @@ void Reconstructor::update()
 		//cout << labels;
 
 		//Save model in xml-file
-		GMM_model1->save("GMM_model1.xml");
-		GMM_model2->save("GMM_model2.xml");
-		GMM_model3->save("GMM_model3.xml");
-		GMM_model4->save("GMM_model4.xml");
+		GMM_model1->save("../GMM_model1.xml");
+		GMM_model2->save("../GMM_model2.xml");
+		GMM_model3->save("../GMM_model3.xml");
+		GMM_model4->save("../GMM_model4.xml");
 	}
 
 
@@ -379,16 +353,16 @@ void Reconstructor::update()
 
 
 	//ONLINE PHASE
-	//clustering for each frame
-	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
+
 
 	vector<Point2f> groundCoordinates(visible_voxels.size());
+	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end()); //I needed to comment this and add it at line 388 in for, so we can see the actual upper-body voxels
 
 	for (int i = 0; i < (int)visible_voxels.size(); i++) {
-		groundCoordinates[i] = Point2f(visible_voxels[i]->x, visible_voxels[i]->y);
+			groundCoordinates[i] = Point2f(visible_voxels[i]->x, visible_voxels[i]->y);
 	}
 
-	std::vector<int> labels;								//labels
+	std::vector<int> labels;											//labels
 
 	kmeans(groundCoordinates, 4, labels, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
 
@@ -398,70 +372,46 @@ void Reconstructor::update()
 	Ptr<EM> GMM_model3 = EM::load("GMM_model3.xml");
 	Ptr<EM> GMM_model4 = EM::load("GMM_model4.xml");
 
-	int cluster1_occur = count(labels.begin(), labels.end(), 0);
-	int cluster2_occur = count(labels.begin(), labels.end(), 1);
-	int cluster3_occur = count(labels.begin(), labels.end(), 2);
-	int cluster4_occur = count(labels.begin(), labels.end(), 3);
-
 	//get currentframe in img
 	Mat img = m_cameras[1]->getFrame();
 
-	Mat cluster1(cluster1_occur, 3, CV_64FC1);
-	Mat cluster2(cluster2_occur, 3, CV_64FC1);
-	Mat cluster3(cluster3_occur, 3, CV_64FC1);
-	Mat cluster4(cluster4_occur, 3, CV_64FC1);
-
-	int index_cluster1 = 0;
-	int index_cluster2 = 0;
-	int index_cluster3 = 0;
-	int index_cluster4 = 0;
-
+	Mat cluster1;
+	Mat cluster2;
+	Mat cluster3;
+	Mat cluster4;
 
 	//asign m_visible_voxels to labels
 	for (int i = 0; i < visible_voxels.size(); i++) {
 		visible_voxels[i]->label = labels[i];
 		int label_no = labels[i];
 
-
-		if (m_visible_voxels_frame[i]->z < (m_height * 2/5)){
-			cout << "This is true";
-
-			const Point point_forrgb = m_visible_voxels[i]->camera_projection[1];
+		if (visible_voxels[i]->z > (m_height * 2 / 5))
+		{
+			//cout << "This is true";
+			const Point point_forrgb = visible_voxels[i]->camera_projection[1];
 			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-
+			Mat rgb_r(1, 3, CV_64FC1);
+			rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
+			rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+			rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
 			switch (label_no) {
 			case 0:
-				cluster1.at<double>(index_cluster1, 0) = static_cast<int>(rgb[0]);
-				cluster1.at<double>(index_cluster1, 1) = static_cast<int>(rgb[1]);
-				cluster1.at<double>(index_cluster1, 2) = static_cast<int>(rgb[2]);
-				index_cluster1++;
-				cluster1_occur--;
+				cluster1.push_back(rgb_r);
 				break;
 			case 1:
-				cluster2.at<double>(index_cluster2, 0) = static_cast<int>(rgb[0]);
-				cluster2.at<double>(index_cluster2, 1) = static_cast<int>(rgb[1]);
-				cluster2.at<double>(index_cluster2, 2) = static_cast<int>(rgb[2]);
-				index_cluster2++;
-				cluster2_occur--;
+				cluster2.push_back(rgb_r);
 				break;
 			case 2:
-				cluster3.at<double>(index_cluster3, 0) = static_cast<int>(rgb[0]);
-				cluster3.at<double>(index_cluster3, 1) = static_cast<int>(rgb[1]);
-				cluster3.at<double>(index_cluster3, 2) = static_cast<int>(rgb[2]);
-				index_cluster3++;
-				cluster3_occur--;
+				cluster3.push_back(rgb_r);
 				break;
 			case 3:
-				cluster4.at<double>(index_cluster4, 0) = static_cast<int>(rgb[0]);
-				cluster4.at<double>(index_cluster4, 1) = static_cast<int>(rgb[1]);
-				cluster4.at<double>(index_cluster4, 2) = static_cast<int>(rgb[2]);
-				index_cluster4++;
-				cluster4_occur--;
+				cluster4.push_back(rgb_r);
 				break;
 			}
-
 		}
+
+	}
 
 
 		//cout << row;
@@ -471,7 +421,6 @@ void Reconstructor::update()
 		//cout << "third: " << static_cast<int>(rgb[2]);
 		//mat_name.push_back(row);
 
-	}
 
 	//cout << "\nFirstlabel: \n" << cluster1;
 	//cout << "\nSecondlabel: \n" << cluster2;
