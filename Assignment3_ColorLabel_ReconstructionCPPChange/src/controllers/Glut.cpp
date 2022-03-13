@@ -527,6 +527,23 @@ void Glut::idle()
 #endif
 }
 
+void DrawCircle(float cx, float cy, float r, int num_segments)
+{
+	glBegin(GL_TRIANGLE_FAN);
+	glColor3ub(255, 0, 0);
+	for (int ii = 0; ii < num_segments; ii++)
+	{
+		float theta = 2.0f * 3.1415926f * float(ii) / float(num_segments);//get the current angle
+
+		float x = r * cosf(theta);//calculate the x component
+		float y = r * sinf(theta);//calculate the y component
+
+		glVertex2f(x + cx, y + cy);//output vertex
+
+	}
+	glEnd();
+}
+
 /**
  * Render the 3D scene
  */
@@ -546,6 +563,7 @@ void Glut::display()
 
 	arcball_rotate();
 
+	Mat center_circle = m_Glut->getScene3d().getReconstructor().getCenters();
 	Scene3DRenderer& scene3d = m_Glut->getScene3d();
 	if (scene3d.isShowGrdFlr())
 		drawGrdGrid();
@@ -555,6 +573,12 @@ void Glut::display()
 		drawVolume();
 	if (scene3d.isShowArcball())
 		drawArcball();
+
+	//cout << center_circle.at<float>(0, 0);
+	//cout << "\n";
+	//cout << center_circle.at<float>(0, 1);
+
+	DrawCircle((GLfloat)center_circle.at<float>(0, 0), (GLfloat)center_circle.at<float>(0, 1), 1000, 360);
 
 	drawVoxels();
 

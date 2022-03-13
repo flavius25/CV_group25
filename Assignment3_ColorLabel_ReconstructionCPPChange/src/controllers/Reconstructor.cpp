@@ -34,7 +34,7 @@ namespace nl_uu_science_gmt
 Reconstructor::Reconstructor(
 		const vector<Camera*> &cs) :
 				m_cameras(cs),
-				m_height(2560),
+				m_height(2048), //2048 for debug //2560 optimal
 				m_step(32)
 {
 	for (size_t c = 0; c < m_cameras.size(); ++c)
@@ -224,6 +224,7 @@ void Reconstructor::update()
 		//m_visible_voxels_frame.insert(m_visible_voxels_frame.end(), visible_voxels_frame.begin(), visible_voxels_frame.end());
 		vector<Point2f> groundCoordinates_frame(visible_voxels_frame.size());
 		for (int i = 0; i < (int)visible_voxels_frame.size(); i++) {
+
 			if (visible_voxels_frame[i]->z > (m_height * 2 / 5))		//we only take the points that we are interested in (upper-body)
 			{
 				groundCoordinates_frame[i] = Point2f(visible_voxels_frame[i]->x, visible_voxels_frame[i]->y);
@@ -234,7 +235,7 @@ void Reconstructor::update()
 
 		//get currentframe in img
 		Mat img = m_cameras[1]->getFrame();
-		//std::vector<cv::Vec3b> m_bgr; //vector for storing RGB values for voxel
+		//Mat img2 = m_cameras[2]->getFrame();
 
 		Mat samples1;
 		Mat samples2;
@@ -245,28 +246,40 @@ void Reconstructor::update()
 		for (int i = 0; i < visible_voxels_frame.size(); i++) {
 			visible_voxels_frame[i]->label = labels_frame[i];
 			int label_no = labels_frame[i];
+	
+				const Point point_forrgb = visible_voxels_frame[i]->camera_projection[1];
+				//const Point point_forrgb2 = visible_voxels_frame[i]->camera_projection[2];
+				cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
+				//cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);		//get original RGB values for pixels of interest
 
-			const Point point_forrgb = visible_voxels[i]->camera_projection[1];
-			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-			Mat rgb_r(1, 3, CV_64FC1);
-			rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
-			rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
-			rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+				Mat rgb_r(1, 3, CV_64FC1);
+				rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
+				rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+				rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
-			switch (label_no) {
-			case 0:
-				samples1.push_back(rgb_r);
-				break;
-			case 1:
-				samples2.push_back(rgb_r);
-				break;
-			case 2:
-				samples3.push_back(rgb_r);
-				break;
-			case 3:
-				samples4.push_back(rgb_r);
-				break;
-			}
+				//Mat rgb_r2(1, 3, CV_64FC1);
+				//rgb_r2.at<double>(0, 0) = static_cast<int>(rgb[0]);
+				//rgb_r2.at<double>(0, 1) = static_cast<int>(rgb[1]);
+				//rgb_r2.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+				switch (label_no) {
+				case 0:
+					samples1.push_back(rgb_r);
+					//samples1.push_back(rgb_r2);
+					break;
+				case 1:
+					samples2.push_back(rgb_r);
+					//samples2.push_back(rgb_r2);
+					break;
+				case 2:
+					samples3.push_back(rgb_r);
+					//samples3.push_back(rgb_r2);
+					break;
+				case 3:
+					samples4.push_back(rgb_r);
+					//samples4.push_back(rgb_r2);
+					break;
+				}
 		}
 
 					//How to implement less voxels idea: so we need the Mat we are pushing these two to be the exact size 
@@ -292,7 +305,7 @@ void Reconstructor::update()
 		//m_labels_frame.assign(labels_frame.begin(), labels_frame.end());
 
 		//Put number of clusters to 3 here, corresponding to number of color components, as each person has roughly 3 specific colors
-		int no_clusters = 3;
+		int no_clusters = 2; //good results with 2
 
 		//Create model 1
 		Ptr<EM> GMM_model1 = EM::create();
@@ -373,8 +386,20 @@ void Reconstructor::update()
 	Ptr<EM> GMM_model3 = EM::load("GMM_model3.xml");
 	Ptr<EM> GMM_model4 = EM::load("GMM_model4.xml");
 
+	//cout << centers;
+	//cout << centers.at<float>(0,1);
+
 	//get currentframe in img
 	Mat img = m_cameras[1]->getFrame();
+	//Mat img2 = m_cameras[2]->getFrame();
+	//Mat img3 = m_cameras[3]->getFrame();
+
+	//cv::Scalar colorCircle1(0, 0, 255);
+	//cv::Point centerCircle1(centers.at<float>(0, 0), centers.at<float>(0, 1));
+
+	//cv::circle(img, centerCircle1, 30, colorCircle1, 2);
+
+	//imshow("View", img);
 
 	Mat samples1;
 	Mat samples2;
@@ -388,26 +413,48 @@ void Reconstructor::update()
 
 		if (visible_voxels[i]->z > (m_height * 2 / 5))
 		{
+			//if (visible_voxels[i]->x == int(centers.at<float>(0, 0)) && visible_voxels[i]->y == int(centers.at<float>(0, 1))) {
+			//	cout << "found";
+			//}
 			//cout << "This is true";
 			const Point point_forrgb = visible_voxels[i]->camera_projection[1];
+			//const Point point_forrgb2 = visible_voxels[i]->camera_projection[2];
+			//const Point point_forrgb3 = visible_voxels[i]->camera_projection[3];
 			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
+			//cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);		//get original RGB values for pixels of interest
+			//cv::Vec3b rgb3 = img3.at<cv::Vec3b>(point_forrgb3);		//get original RGB values for pixels of interest
+			
 			Mat rgb_r(1, 3, CV_64FC1);
 			rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
 			rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
 			rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
+			//Mat rgb_r2(1, 3, CV_64FC1);
+			//rgb_r2.at<double>(0, 0) = static_cast<int>(rgb2[0]);
+			//rgb_r2.at<double>(0, 1) = static_cast<int>(rgb2[1]);
+			//rgb_r2.at<double>(0, 2) = static_cast<int>(rgb2[2]);
+
+			//Mat rgb_r3(1, 3, CV_64FC1);
+			//rgb_r3.at<double>(0, 0) = static_cast<int>(rgb3[0]);
+			//rgb_r3.at<double>(0, 1) = static_cast<int>(rgb3[1]);
+			//rgb_r3.at<double>(0, 2) = static_cast<int>(rgb3[2]);
+
 			switch (label_no) {
 			case 0:
 				samples1.push_back(rgb_r);
+				//samples1.push_back(rgb_r2);
 				break;
 			case 1:
 				samples2.push_back(rgb_r);
+				//samples2.push_back(rgb_r2);
 				break;
 			case 2:
 				samples3.push_back(rgb_r);
+				//samples3.push_back(rgb_r2);
 				break;
 			case 3:
 				samples4.push_back(rgb_r);
+				//samples4.push_back(rgb_r2);
 				break;
 			}
 		}

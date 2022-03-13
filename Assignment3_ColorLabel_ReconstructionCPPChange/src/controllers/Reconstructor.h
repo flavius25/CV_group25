@@ -118,12 +118,12 @@ public:
 		return m_labels_frame;
 	}
 
-	const std::vector<cv::Mat>& getCenters() const
+	const cv::Mat& getCenters() const
 	{
 		return centers;
 	}
 
-	const std::vector<cv::Mat>& getCentersFrame() const
+	const cv::Mat& getCentersFrame() const
 	{
 		return centers_frame;
 	}
