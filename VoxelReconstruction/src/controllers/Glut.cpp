@@ -11,9 +11,9 @@
 #include <GL/freeglut_std.h>
 #endif
 #include <GL/glu.h>
-#include <opencv2/core.hpp>
+#include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include <opencv2/highgui.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgproc/types_c.h>
 #include <stddef.h>
@@ -25,6 +25,8 @@
 #include <string>
 #include <valarray>
 #include <vector>
+#include <chrono>
+using namespace std::chrono;
 
 #include "../utilities/General.h"
 #include "arcball.h"
@@ -212,6 +214,7 @@ int Glut::initializeWindows(const char* win_name)
  */
 void Glut::mainLoopWindows()
 {
+	//cluster();
 	while(!m_Glut->getScene3d().isQuit())
 	{
 		update(0);
@@ -524,6 +527,26 @@ void Glut::idle()
 #endif
 }
 
+void DrawCircle(float cx, float cy, float r, int num_segments)
+{
+	glLineWidth(1.5f);
+	glPushMatrix();
+	glBegin(GL_LINE_LOOP);
+	//glColor3ub(255, 0, 0);
+	for (int ii = 0; ii < num_segments; ii++)
+	{
+		float theta = 2.0f * 3.1415926f * float(ii) / float(num_segments);//get the current angle
+
+		float x = r * cosf(theta);//calculate the x component
+		float y = r * sinf(theta);//calculate the y component
+
+		glVertex2f(x + cx, y + cy);//output vertex
+
+	}
+	glEnd();
+	glPopMatrix();
+}
+
 /**
  * Render the 3D scene
  */
@@ -543,6 +566,7 @@ void Glut::display()
 
 	arcball_rotate();
 
+	Mat center_circle = m_Glut->getScene3d().getReconstructor().getCenters();
 	Scene3DRenderer& scene3d = m_Glut->getScene3d();
 	if (scene3d.isShowGrdFlr())
 		drawGrdGrid();
@@ -552,6 +576,12 @@ void Glut::display()
 		drawVolume();
 	if (scene3d.isShowArcball())
 		drawArcball();
+
+	//cout << center_circle.at<float>(0, 0);
+	//cout << "\n";
+	//cout << center_circle.at<float>(0, 1);
+
+	//DrawCircle((GLfloat)center_circle.at<float>(0, 0), (GLfloat)center_circle.at<float>(0, 1), 1000, 360);
 
 	drawVoxels();
 
@@ -567,6 +597,50 @@ void Glut::display()
 #elif defined _WIN32
 	SwapBuffers(scene3d.getHDC());
 #endif
+}
+
+
+// void Glut::cluster() {
+// 	//find a frame
+// 	//frame 0-50 camera2
+// 	//frame 514 camera4
+// 	//frame 1244/2235 camera3
+// 	Scene3DRenderer& scene3d = m_Glut->getScene3d();
+
+// 	scene3d.setCurrentFrame(514);
+// 	for (size_t c = 0; c < scene3d.getCameras().size(); ++c)
+// 		if (c == 3) {
+// 			scene3d.getCameras()[c]->setVideoFrame(scene3d.getCurrentFrame());
+// 		}
+// 		else {
+// 			cout << "nope";
+// 		}
+
+// 	scene3d.processFrame();
+// 	scene3d.getReconstructor().update();
+
+// 	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
+
+// 	//Mat centers_now = m_Glut->getScene3d().getReconstructor().getCenters(); //to modify them to a vector<float> maybe
+// 	vector<int> labels_now = m_Glut->getScene3d().getReconstructor().getLabels();
+
+// 	for (size_t l = 0; l < labels_now.size(); l++) {
+// 		cout << labels_now[l];
+// 	}
+// 	//cout << centers_now;
+
+
+// 	//do something with labels with colors stuff
+// }
+
+void Glut::colormodel() {
+
+	//matchtheclusters
+}
+
+void Glut::matchcolor() {
+
+	//matchtheclusters
 }
 
 /**
@@ -609,7 +683,14 @@ void Glut::update(
 	{
 		// If the current frame is different from the last iteration update stuff
 		scene3d.processFrame();
+		auto start = high_resolution_clock::now();
 		scene3d.getReconstructor().update();
+		auto stop = high_resolution_clock::now();
+		auto duration = duration_cast<milliseconds>(stop - start);
+
+		// To get the value of duration use the count()
+		// member function on the duration object
+		std::cout << duration.count() << endl;
 		scene3d.setPreviousFrame(scene3d.getCurrentFrame());
 	}
 	else if (scene3d.getHThreshold() != scene3d.getPHThreshold() || scene3d.getSThreshold() != scene3d.getPSThreshold()
@@ -855,8 +936,7 @@ void Glut::drawVoxels()
 	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
 	for (size_t v = 0; v < voxels.size(); v++)
 	{
-		//Take the rgb values that are stored in each voxel
-		glColor3f(voxels[v]->color[2], voxels[v]->color[1],voxels[v]->color[0]); //1.0f, 0.5f, 0.0f, 0.0f 
+		glColor3f(voxels[v]->color[2], voxels[v]->color[1], voxels[v]->color[0]);
 		glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
 	}
 

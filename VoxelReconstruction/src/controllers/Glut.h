@@ -74,6 +74,9 @@ public:
 	static void reset();
 	static void idle();
 	static void display();
+	static void cluster();
+	static void colormodel();
+	static void matchcolor();
 	static void update(
 			int);
 	static void quit();

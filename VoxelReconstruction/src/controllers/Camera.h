@@ -61,7 +61,7 @@ class Camera
 
 	cv::Point3f ptToW3D(const cv::Point &);
 	cv::Point3f cam3DtoW3D(const cv::Point3f &);
-
+	
 public:
 	Camera(const std::string &, const std::string &, int);
 	virtual ~Camera();
