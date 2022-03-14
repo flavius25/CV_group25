@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<opencv_ml_em>
+  <format>3</format>
+  <training_params>
+    <nclusters>2</nclusters>
+    <cov_mat_type>spherical</cov_mat_type>
+    <epsilon>1.0000000000000001e-01</epsilon>
+    <iterations>100</iterations></training_params>
+  <weights type_id="opencv-matrix">
+    <rows>1</rows>
+    <cols>2</cols>
+    <dt>d</dt>
+    <data>
+      2.4850406019401902e-01 7.5149593980597873e-01</data></weights>
+  <means type_id="opencv-matrix">
+    <rows>2</rows>
+    <cols>3</cols>
+    <dt>d</dt>
+    <data>
+      1.4311005267820343e+02 1.2227730072858421e+02
+      9.7688415508368109e+01 9.9790032622946569e+01
+      8.1612079833937258e+01 6.0009182381750399e+01</data></means>
+  <covs>
+    <_ type_id="opencv-matrix">
+      <rows>3</rows>
+      <cols>3</cols>
+      <dt>d</dt>
+      <data>
+        6.7541134750966205e+02 0. 0. 0. 6.7541134750966205e+02 0. 0. 0.
+        6.7541134750966205e+02</data></_>
+    <_ type_id="opencv-matrix">
+      <rows>3</rows>
+      <cols>3</cols>
+      <dt>d</dt>
+      <data>
+        2.5829527219663839e+02 0. 0. 0. 2.5829527219663839e+02 0. 0. 0.
+        2.5829527219663839e+02</data></_></covs></opencv_ml_em>
+</opencv_storage>
