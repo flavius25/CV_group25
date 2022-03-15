@@ -128,6 +128,7 @@ void Reconstructor::initialize()
 
 				// Create all voxels
 				Voxel* voxel = new Voxel;
+				CamPoint* CamPT = new CamPoint;
 				voxel->x = x;
 				voxel->y = y;
 				voxel->z = z;
@@ -145,7 +146,19 @@ void Reconstructor::initialize()
 
 					// If it's within the camera's FoV, flag the projection
 					if (point.x >= 0 && point.x < m_plane_size.width && point.y >= 0 && point.y < m_plane_size.height)
-						voxel->valid_camera_projection[(int) c] = 1;
+						voxel->valid_camera_projection[(int)c] = 1;
+						//if (c==2 || c==3) {
+						//	CamPT->Coord2D = point;
+						//	CamPT->camera = c;
+						//	CamPT->voxels_init.push_back(voxel);
+						//	for (int i = 0; i < CamPT->voxels_init.size();i++) {
+						//		sort(CamPT->voxels_init.begin(), CamPT->voxels_init.end());
+						//		cout << CamPT->voxels_init[i];
+						//		break;
+						//	}
+						//}
+					
+						
 				}
 
 				//Writing voxel 'p' is not critical as it's unique (thread safe)
@@ -353,7 +366,58 @@ void Reconstructor::update()
 		GMM_model4->save("GMM_model4.xml");
 	}
 
+	//offline occlusions once
+	if (once) {
+		vector <int> cameras_used2 = { 2,3 };
+		std::vector<Voxel*> voxels_distance;
 
+		for (int i = 0; i < visible_voxels.size(); i++) {
+			/*visible_voxels[i]->label = labels[i];
+			int i_label = visible_voxels[i]->label;*/
+
+			for (int k = 0; k < visible_voxels.size(); k++) {
+				/*visible_voxels[k]->label = labels[k];
+				int k_label = visible_voxels[k]->label;*/
+
+				if (!(visible_voxels[i] == visible_voxels[k])) {
+
+					if ((visible_voxels[i]->z > (m_height * 1.5 / 5)) && (visible_voxels[k]->z > (m_height * 1.5 / 5))) {
+
+						for (int c = 0; c < cameras_used2.size(); c++) {
+
+							const Point i_point = visible_voxels[i]->camera_projection[c];
+							const Point k_point = visible_voxels[k]->camera_projection[c];
+
+							int radius_region_of_interest = 5;			//check if the k_point is in the region (radius of circle around i_point). Currently set to 5
+
+							if ((k_point.x - i_point.x) * (k_point.x - i_point.x) + (k_point.y - i_point.y) * (k_point.y - i_point.y) <= radius_region_of_interest * radius_region_of_interest) {
+
+								Vec3f camWPoint = m_cameras[c]->getCameraLocation();
+								Vec3f i_W_point = Point3f(i_point.x, i_point.y, (float)visible_voxels[i]->z);
+								Vec3f k_W_point = Point3f(k_point.x, k_point.y, (float)visible_voxels[k]->z);
+								float i_Cam_dist = norm(i_W_point, camWPoint, NORM_L2);
+								float k_Cam_dist = norm(k_W_point, camWPoint, NORM_L2);
+
+								if (i_Cam_dist > k_Cam_dist) {
+									//have a vector that stores visible_voxels[i]   map<Voxel*, double> visibile voxel[i]: distance visible voxel to Camera
+									visible_voxels[i]->voxels_occluded.push_back(visible_voxels[k]);
+								}
+								//cout << i_Cam_dist;
+								//cout << "\n";
+								//cout << k_Cam_dist;
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+
+		}
+		once = false;
+	}
 
 
 
@@ -381,59 +445,12 @@ void Reconstructor::update()
 
 	kmeans(groundCoordinates, 4, labels, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
 
+	//if is visible_voxels[i]->x,-y in radius of centers[0]-x, -y. We can set a radius, continue
+	//else erase visible_voxels[i]. 
 
 	//offline_occlusion_storing
 	Mat distances;
-	vector <int> cameras_used2 = { 2,3 };
-	std::vector<Voxel*> voxels_distance;
 
-	for (int i = 0; i < visible_voxels.size(); i++) {
-		visible_voxels[i]->label = labels[i];
-		int i_label = visible_voxels[i]->label;
-
-		for (int k = 0; k < visible_voxels.size(); k++) {
-			visible_voxels[k]->label = labels[k];
-			int k_label = visible_voxels[k]->label;
-
-			if (!(visible_voxels[i] == visible_voxels[k])) {
-
-				if ((visible_voxels[i]->z > (m_height * 1.5 / 5)) && (visible_voxels[k]->z > (m_height * 1.5 / 5))) {
-					
-					for (int c = 0; c < cameras_used2.size(); c++) {
-
-						const Point i_point = visible_voxels[i]->camera_projection[c];
-						const Point k_point = visible_voxels[k]->camera_projection[c];
-
-						int radius_region_of_interest = 5;			//Based on Ronald's idea to check if the k_point is in the region (radius of circle around i_point). Currently set to 5
-
-						if ((k_point.x - i_point.x) * (k_point.x - i_point.x) + (k_point.y - i_point.y) * (k_point.y - i_point.y) <= radius_region_of_interest * radius_region_of_interest) {
-
-							Vec3f camWPoint = m_cameras[c]->getCameraLocation();
-							Vec3f i_W_point = Point3f(i_point.x, i_point.y, (float)visible_voxels[i]->z);
-							Vec3f k_W_point = Point3f(k_point.x, k_point.y, (float)visible_voxels[k]->z);
-							float i_Cam_dist = norm(i_W_point, camWPoint, NORM_L2);
-							float k_Cam_dist = norm(k_W_point, camWPoint, NORM_L2);
-
-							if (i_Cam_dist > k_Cam_dist) {
-								continue;
-							}
-							else {
-
-							}
-							//cout << i_Cam_dist;
-							//cout << "\n";
-							//cout << k_Cam_dist;
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-	}
 
 
 	//load the GMM_model
@@ -473,32 +490,33 @@ void Reconstructor::update()
 		visible_voxels[i]->label = labels[i];
 		int i_label = visible_voxels[i]->label;
 
-		for (int k = 0; k < visible_voxels.size(); k++){
-			visible_voxels[k]->label = labels[k];
-			int k_label = visible_voxels[k]->label;
-
-			if (!(visible_voxels[i] == visible_voxels[k])){
-				if ((visible_voxels[i]->z > (m_height * 1.5 / 5)) && (visible_voxels[k]->z > (m_height * 1.5 / 5))){
+				if (visible_voxels[i]->z > (m_height * 1.5 / 5)){
 					for (int c = 0; c < cameras_used.size(); c++){
-			//	cout << "found";
-			//}			
-			//cout << "This is true";
-						auto start = high_resolution_clock::now();
+
+						//auto start = high_resolution_clock::now();
+						std::vector<Voxel*> actual_occluded = visible_voxels[i]->voxels_occluded;
+						for (int k = 0; k < actual_occluded.size(); k++) {
+							if (actual_occluded[k]->valid_camera_projection[c]) {
+
+							}
+						}
+
 						const Point i_point = visible_voxels[i]->camera_projection[c];
-						const Point k_point = visible_voxels[k]->camera_projection[c];
-						if ((i_point == k_point) && !(i_label == k_label)){
+						//const Point k_point = visible_voxels[k]->camera_projection[c];
+						//if (i_point){
 							Vec3f camWPoint= m_cameras[c]->getCameraLocation();
 							Vec3f i_W_point = Point3f(i_point.x, i_point.y, (float) visible_voxels[i]->z);
-							Vec3f k_W_point = Point3f(k_point.x, k_point.y, (float) visible_voxels[k]->z);
+							//Vec3f k_W_point = Point3f(k_point.x, k_point.y, (float) visible_voxels[k]->z);
 							float i_Cam_dist = norm(i_W_point,camWPoint, NORM_L2);
-							float k_Cam_dist = norm(k_W_point,camWPoint, NORM_L2);
+							//float k_Cam_dist = norm(k_W_point,camWPoint, NORM_L2);
+							float k_Cam_dist = i_Cam_dist;
 
-							auto stop = high_resolution_clock::now();
-							auto duration = duration_cast<milliseconds>(stop - start);
+							/*auto stop = high_resolution_clock::now();
+							auto duration = duration_cast<milliseconds>(stop - start);*/
 
 							// To get the value of duration use the count()
 							// member function on the duration object
-							std::cout << duration.count() << endl;
+							//std::cout << duration.count() << endl;
 
 							if(i_Cam_dist > k_Cam_dist){
 								continue;
@@ -507,15 +525,15 @@ void Reconstructor::update()
 			//cout << point_forrgb.y << "\n";
 			//d(visible_voxels[i]->x, visible_voxels[i]->y, point_forrgb->x, point_forrgb->y)    // d(the point of the voxel, and then the point on the camera projection)
 			//if 2 samples have the same rgb value in the same view(camera) then check which *how to get this ->sample point is closer to the we have this->camera* and only include that rgb value for that sample.
-						else{
+							else{
 							cv::Vec3b rgb = img_vec[c].at<cv::Vec3b>(i_point);	//get original RGB values for pixels of interest
 			//cv::Vec3b rgb3 = img3.at<cv::Vec3b>(point_forrgb3);		//get original RGB values for pixels of interest
 			//cv::Vec3b rgb4 = img4.at<cv::Vec3b>(point_forrgb4);		//get original RGB values for pixels of interest
 			
-			Mat rgb_r(1, 3, CV_64FC1);
-			rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
-			rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
-			rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+							Mat rgb_r(1, 3, CV_64FC1);
+							rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
+							rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+							rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
 
 			//Mat rgb_r3(1, 3, CV_64FC1);
@@ -528,34 +546,32 @@ void Reconstructor::update()
 			//rgb_r4.at<double>(0, 1) = static_cast<int>(rgb4[1]);
 			//rgb_r4.at<double>(0, 2) = static_cast<int>(rgb4[2]);
 
-			switch (i_label) {
-			case 0:
-				samples1.push_back(rgb_r);
-				//samples1.push_back(rgb_r3);
-				//samples1.push_back(rgb_r4);
-				break;
-			case 1:
-				samples2.push_back(rgb_r);
-				//samples2.push_back(rgb_r3);
-				//samples2.push_back(rgb_r4);
-				break;
-			case 2:
-				samples3.push_back(rgb_r);
-				//samples3.push_back(rgb_r3);
-				//samples3.push_back(rgb_r4);
-				break;
-			case 3:
-				samples4.push_back(rgb_r);
-				//samples4.push_back(rgb_r3);
-				//samples4.push_back(rgb_r4);
-				break;
+							switch (i_label) {
+							case 0:
+								samples1.push_back(rgb_r);
+								//samples1.push_back(rgb_r3);
+								//samples1.push_back(rgb_r4);
+								break;
+							case 1:
+								samples2.push_back(rgb_r);
+								//samples2.push_back(rgb_r3);
+								//samples2.push_back(rgb_r4);
+								break;
+							case 2:
+								samples3.push_back(rgb_r);
+								//samples3.push_back(rgb_r3);
+								//samples3.push_back(rgb_r4);
+								break;
+							case 3:
+								samples4.push_back(rgb_r);
+								//samples4.push_back(rgb_r3);
+								//samples4.push_back(rgb_r4);
+								break;
 								}
 							}	
 						}
-					}	
 				}
-			}
-		}
+		//}
 
 	}
 

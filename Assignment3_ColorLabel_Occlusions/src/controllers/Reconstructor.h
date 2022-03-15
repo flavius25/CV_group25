@@ -30,7 +30,14 @@ public:
 		cv::Vec3f color;                          // Color
 		std::vector<cv::Point> camera_projection;  // Projection location for camera[c]'s FoV (2D)
 		std::vector<int> valid_camera_projection;  // Flag if camera projection is in camera[c]'s FoV
+		std::vector<Voxel*> voxels_occluded;
 		int label;
+	};
+	struct CamPoint
+	{
+		cv::Point Coord2D;                               // Coordinates
+		int camera;
+		std::vector<Voxel*> voxels_init;
 	};
 
 	//Define 4 colors 
@@ -47,6 +54,7 @@ private:
 	const int m_step;                       // Step size (space between voxels)
 	int countFrames;						// generalCounter for frames	
 	std::vector<int> labels;											//labels
+	bool once=true;
 
 	std::vector<cv::Point3f*> m_corners;			// Cube half-space corner locations
 	std::vector<int> m_labels;						// labels
@@ -62,6 +70,8 @@ private:
 	std::vector<Voxel*> m_voxels;           // Pointer vector to all voxels in the half-space
 	std::vector<Voxel*> m_visible_voxels;   // Pointer vector to all visible voxels
 	std::vector<Voxel*> m_visible_voxels_frame;   // Pointer vector to all visible voxels from specified frame
+	float global_distance = 0;
+	cv::Point global_proj_point = { 200,200 };			//global proj point
 
 	void initialize();
 
