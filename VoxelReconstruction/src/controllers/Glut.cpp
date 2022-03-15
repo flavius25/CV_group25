@@ -527,25 +527,6 @@ void Glut::idle()
 #endif
 }
 
-void DrawCircle(float cx, float cy, float r, int num_segments)
-{
-	glLineWidth(1.5f);
-	glPushMatrix();
-	glBegin(GL_LINE_LOOP);
-	//glColor3ub(255, 0, 0);
-	for (int ii = 0; ii < num_segments; ii++)
-	{
-		float theta = 2.0f * 3.1415926f * float(ii) / float(num_segments);//get the current angle
-
-		float x = r * cosf(theta);//calculate the x component
-		float y = r * sinf(theta);//calculate the y component
-
-		glVertex2f(x + cx, y + cy);//output vertex
-
-	}
-	glEnd();
-	glPopMatrix();
-}
 
 /**
  * Render the 3D scene
@@ -581,9 +562,10 @@ void Glut::display()
 	//cout << "\n";
 	//cout << center_circle.at<float>(0, 1);
 
-	//DrawCircle((GLfloat)center_circle.at<float>(0, 0), (GLfloat)center_circle.at<float>(0, 1), 1000, 360);
+	//drawCircle((GLfloat)center_circle.at<float>(0, 0), (GLfloat)center_circle.at<float>(0, 1), 1000, 360);
 
 	drawVoxels();
+	drawTracking();
 
 	if (scene3d.isShowOrg())
 		drawWCoord();
@@ -746,6 +728,36 @@ void Glut::update(
 #endif
 }
 
+
+void Glut::drawTracking()
+{
+	//glTranslatef(0, 0, 0);
+	glLineWidth(1.5f);
+	glPushMatrix();
+	glBegin(GL_LINES);
+
+	std::vector <cv::Vec3f> color_tab = {
+		{0,0,255},  //RGB
+		{0,255,0},
+		{255,0,0},
+		{255,0,255}
+    };
+	
+	vector<vector <Vec2f>> colorCenters = m_Glut->getScene3d().getReconstructor().getColorCenters();
+
+	for (int i = 0; i < colorCenters.size();i++){
+		glColor3f(color_tab[i][2], color_tab[i][1], color_tab[i][0]);
+		for (int k = 0; k < colorCenters[i].size(); k++){
+			glVertex3f((GLfloat) colorCenters[i][i][0], (GLfloat) colorCenters[i][i][1], (GLfloat) 0);
+		}	
+	}
+
+
+	
+	glEnd();
+	glPopMatrix();
+}
+
 /**
  * Draw the floor
  */
@@ -770,7 +782,6 @@ void Glut::drawGrdGrid()
 		glVertex3f((GLfloat) floor_grid[1][g]->x, (GLfloat) floor_grid[1][g]->y, (GLfloat) floor_grid[1][g]->z);
 		glVertex3f((GLfloat) floor_grid[3][g]->x, (GLfloat) floor_grid[3][g]->y, (GLfloat) floor_grid[3][g]->z);
 	}
-
 	glEnd();
 	glPopMatrix();
 }

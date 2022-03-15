@@ -62,6 +62,11 @@ private:
 	std::vector<Voxel*> m_visible_voxels;   // Pointer vector to all visible voxels
 	std::vector<Voxel*> m_visible_voxels_frame;   // Pointer vector to all visible voxels from specified frame
 
+	std::vector <Vec2f*> color_center1;  //Vector of vectors with centers to draw on grid for each person
+	std::vector <Vec2f*> color_center2;
+	std::vector <Vec2f*> color_center3;
+	std::vector <Vec2f*> color_center4;
+
 	void initialize();
 
 public:
@@ -116,6 +121,26 @@ public:
 	const std::vector<int>& getLabelsFrame() const
 	{
 		return m_labels_frame;
+	}
+
+	const std::vector<cv::Vec2f*>& getColorCenter1() const
+	{
+		return color_center1;
+	}
+
+	const std::vector<cv::Vec2f*>& getColorCenter2() const
+	{
+		return color_center2;
+	}
+
+	const std::vector<cv::Vec2f*>& getColorCenter3() const
+	{
+		return color_center3;
+	}
+
+	const std::vector<cv::Vec2f*>& getColorCenter4() const
+	{
+		return color_center4;
 	}
 
 	const cv::Mat& getCenters() const

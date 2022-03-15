@@ -395,134 +395,111 @@ void Reconstructor::update()
 
 #pragma omp for 
 	//Looping to check for occlusions, only consider pixels from voxels that are closest to camera
+	// for (int i = 0; i < visible_voxels.size(); i++) {
+	// 	visible_voxels[i]->label = labels[i];
+	// 	int i_label = visible_voxels[i]->label;
+
+	// 	for (int k = 0; k < visible_voxels.size(); k++){
+	// 		visible_voxels[i]->label = labels[i];
+	// 		int k_label = visible_voxels[k]->label;
+
+	// 		if (!(visible_voxels[i] == visible_voxels[k])){
+	// 			if ((visible_voxels[i]->z > (m_height * 1.5 / 5)) && (visible_voxels[k]->z > (m_height * 1.5 / 5))){
+	// 				for (int c = 0; c < cameras_used.size(); c++){
+	// 					const Point i_point = visible_voxels[i]->camera_projection[c];
+	// 					const Point k_point = visible_voxels[k]->camera_projection[c];
+
+	// 					if ((i_point == k_point) && !(i_label == k_label)){
+	// 						Vec3f camWPoint= m_cameras[c]->getCameraLocation();
+	// 						Vec3f i_W_point = Point3f(i_point.x, i_point.y, (float) visible_voxels[i]->z);
+	// 						Vec3f k_W_point = Point3f(k_point.x, k_point.y, (float) visible_voxels[k]->z);
+	// 						float i_Cam_dist = norm(i_W_point,camWPoint, NORM_L2);
+	// 						float k_Cam_dist = norm(k_W_point,camWPoint, NORM_L2);
+	// 						if(i_Cam_dist > k_Cam_dist){
+	// 							continue;
+	// 						}
+	// 					else{
+	// 						cv::Vec3b rgb = img_vec[c].at<cv::Vec3b>(i_point);	//get original RGB values for pixels of interest
+
+	// 						Mat rgb_r(1, 3, CV_64FC1);
+	// 						rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);  //Put into matrix
+	// 						rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+	// 						rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+	// 						switch (i_label) {
+	// 						case 0:
+	// 							samples1.push_back(rgb_r);
+	// 							break;
+	// 						case 1:
+	// 							samples2.push_back(rgb_r);
+	// 							break;
+	// 						case 2:
+	// 							samples3.push_back(rgb_r);
+	// 							break;
+	// 						case 3:
+	// 							samples4.push_back(rgb_r);
+	// 							break;
+	// 							}
+	// 						}	
+	// 					}
+	// 				}	
+	// 			}
+	// 		}
+	// 	}
+
+	//}
 	for (int i = 0; i < visible_voxels.size(); i++) {
 		visible_voxels[i]->label = labels[i];
 		int i_label = visible_voxels[i]->label;
 
-		for (int k = 0; k < visible_voxels.size(); k++){
-			visible_voxels[i]->label = labels[i];
-			int k_label = visible_voxels[k]->label;
+		if (visible_voxels[i]->z > (m_height * 2 / 5))
+		{
+			for (int c = 0; c < cameras_used.size(); c++){
+				std::vector <Voxels*> occluding_voxels = visible_voxels[i]->occluding_voxel_name[c-2];
+				
+				for (auto v: occluding_voxels) {
+   				 if (std::find(visible_voxels.begin(), visible_voxels.end(), v) == visible_voxels.end()) {
 
-			if (!(visible_voxels[i] == visible_voxels[k])){
-				if ((visible_voxels[i]->z > (m_height * 1.5 / 5)) && (visible_voxels[k]->z > (m_height * 1.5 / 5))){
-					for (int c = 0; c < cameras_used.size(); c++){
-						const Point i_point = visible_voxels[i]->camera_projection[c];
-						const Point k_point = visible_voxels[k]->camera_projection[c];
+						while (any_of(visible_voxels.begin(), visible_voxels.end(), [](){
 
-						if ((i_point == k_point) && !(i_label == k_label)){
-							Vec3f camWPoint= m_cameras[c]->getCameraLocation();
-							Vec3f i_W_point = Point3f(i_point.x, i_point.y, (float) visible_voxels[i]->z);
-							Vec3f k_W_point = Point3f(k_point.x, k_point.y, (float) visible_voxels[k]->z);
-							float i_Cam_dist = norm(i_W_point,camWPoint, NORM_L2);
-							float k_Cam_dist = norm(k_W_point,camWPoint, NORM_L2);
-							if(i_Cam_dist > k_Cam_dist){
-								continue;
+						}))
+       				 	
+						const Point point_forrgb = visible_voxels[i]->camera_projection[c];
+
+						cv::Vec3b rgb = img_vec[c].at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
+				
+						
+						Mat rgb_r(1, 3, CV_64FC1);
+						rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
+						rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+						rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+				
+
+						switch (i_label) {
+						case 0:
+							samples1.push_back(rgb_r);
+							break;
+						case 1:
+							samples2.push_back(rgb_r);
+							break;
+						case 2:
+							samples3.push_back(rgb_r);
+							break;
+						case 3:
+							samples4.push_back(rgb_r);
+							break;
 							}
-						else{
-							cv::Vec3b rgb = img_vec[c].at<cv::Vec3b>(i_point);	//get original RGB values for pixels of interest
-
-							Mat rgb_r(1, 3, CV_64FC1);
-							rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);  //Put into matrix
-							rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
-							rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
-
-							switch (i_label) {
-							case 0:
-								samples1.push_back(rgb_r);
-								break;
-							case 1:
-								samples2.push_back(rgb_r);
-								break;
-							case 2:
-								samples3.push_back(rgb_r);
-								break;
-							case 3:
-								samples4.push_back(rgb_r);
-								break;
-								}
-							}	
-						}
-					}	
+					
+					}
 				}
 			}
 		}
-
 	}
-	// 	if (visible_voxels[i]->z > (m_height * 2 / 5))
-	// 	{
-	// 		//if (visible_voxels[i]->x == int(centers.at<float>(0, 0)) && visible_voxels[i]->y == int(centers.at<float>(0, 1))) {
-	// 		//	cout << "found";
-	// 		//}
-	// 		//cout << "This is true";
-	// 		const Point point_forrgb = visible_voxels[i]->camera_projection[1];
 
-
-	// 		//const Point point_forrgb2 = visible_voxels[i]->camera_projection[2];
-	// 		//const Point point_forrgb3 = visible_voxels[i]->camera_projection[3];
-	// 		cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-	// 		//cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);		//get original RGB values for pixels of interest
-	// 		//cv::Vec3b rgb3 = img3.at<cv::Vec3b>(point_forrgb3);		//get original RGB values for pixels of interest
-			
-	// 		Mat rgb_r(1, 3, CV_64FC1);
-	// 		rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
-	// 		rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
-	// 		rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
-
-	// 		//Mat rgb_r2(1, 3, CV_64FC1);
-	// 		//rgb_r2.at<double>(0, 0) = static_cast<int>(rgb2[0]);
-	// 		//rgb_r2.at<double>(0, 1) = static_cast<int>(rgb2[1]);
-	// 		//rgb_r2.at<double>(0, 2) = static_cast<int>(rgb2[2]);
-
-	// 		//Mat rgb_r3(1, 3, CV_64FC1);
-	// 		//rgb_r3.at<double>(0, 0) = static_cast<int>(rgb3[0]);
-	// 		//rgb_r3.at<double>(0, 1) = static_cast<int>(rgb3[1]);
-	// 		//rgb_r3.at<double>(0, 2) = static_cast<int>(rgb3[2]);
-
-	// 		switch (label_no) {
-	// 		case 0:
-	// 			samples1.push_back(rgb_r);
-	// 			//samples1.push_back(rgb_r2);
-	// 			break;
-	// 		case 1:
-	// 			samples2.push_back(rgb_r);
-	// 			//samples2.push_back(rgb_r2);
-	// 			break;
-	// 		case 2:
-	// 			samples3.push_back(rgb_r);
-	// 			//samples3.push_back(rgb_r2);
-	// 			break;
-	// 		case 3:
-	// 			samples4.push_back(rgb_r);
-	// 			//samples4.push_back(rgb_r2);
-	// 			break;
-	// 		}
-	// 	}
-
-	// }
-
-
-		//cout << row;
-
-		//cout << "first: " << static_cast<int>(rgb[0]);
-		//cout << "second: " << static_cast<int>(rgb[1]);
-		//cout << "third: " << static_cast<int>(rgb[2]);
-		//mat_name.push_back(row);
-
-
-	//cout << "\nFirstlabel: \n" << cluster1;
-	//cout << "\nSecondlabel: \n" << cluster2;
-	//cout << "\nThirdlabel: \n" << cluster3;
-	//cout << "\nFourthlabel: \n" << cluster4;
 
 	vector <Mat> matVec = {samples1, samples2, samples3, samples4}; //Array of all matrices to be combined into one
 
-	//vector of cluster matrices
-	//std::vector <Mat> cluster_matrices;
-		//row= allClustersMat.at<float>(0);
-
-	//cout << "CLusterMAT: \n" << allClustersMat;
-	//cout << allClustersMat.at<Vec3f>(0);
-	//Mat 
 
 	vector <int> final_labels; 
 	vector <vector <double>> costMatrix;
@@ -548,36 +525,27 @@ void Reconstructor::update()
 	//find label for each sample
 	double cost = HungAlgo.Solve(costMatrix, final_labels);
 	
-	//for (unsigned int x = 0; x < costMatrix.size(); x++)
-	//	std::cout << x << "," << final_labels[x] << "\t";
+	//Deciding which center belongs to which person and putting in vector to be plotted on grid
+	for (int i = 0; i < final_labels.size(); i++){
+		Vec2f center = centers.row(i);
+		int color_index = final_labels[i];
+		center_labels[i].push_back(center);
+	}
 
-	//std::cout << "\ncost: " << cost << std::endl;
 
-	//Need check here for double assignation -> perhaps if double assignation remake/refine GMM models with only upper torso, otherwise try kmeans with 3 clusters?
-
-	// ////for loop where prediction of color_label happens, important that all voxels have assigned label for which cluster they belong to (0,1,2,3) and that the cluster matrices are order the same
-	// 	for (int r = 0; r < nr_rows; r++) {
-	// 		row.at<double>(0,0) = allClustersMat.at<double>(r, 0);
-	// 		row.at<double>(0,1) = allClustersMat.at<double>(r, 1);
-	// 		row.at<double>(0,2) = allClustersMat.at<double>(r, 2);
-	// 		int prediction = cvRound(GMM_model->predict2(row, noArray())[1]);			//fixed the error, no color on the ouput still :D
-	// 		//cout << allClustersMat.at<int>(1);
-	// 		predictions.push_back(prediction);
-	// 	}
-
+	//Assigning color labels to each visible voxel
 	for (int i = 0; i < (int)visible_voxels.size(); i++) {
 		int lb = visible_voxels[i]->label;
 		int color_index = final_labels[lb];
-		//Vec3b c = color_tab[1];
 		visible_voxels[i]->color = color_tab[color_index];
-		//cout << color_tab[1];
 	}
+
 
 	//cout << centers.at<float>(3,1) << "\n";
 	//for (size_t l = 0; l < labels.size(); l++) {
 	//	cout << labels[l];
 	//}
-	//cout << centers;
+	
 }
 }
 
