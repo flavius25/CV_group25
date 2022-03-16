@@ -284,41 +284,56 @@ void Reconstructor::update()
 			visible_voxels_frame[i]->label = labels_frame[i];
 			int label_no = labels_frame[i];
 
-			const Point point_forrgb = visible_voxels_frame[i]->camera_projection[2];	// get projection point on camera3
-			const Point point_forrgb2 = visible_voxels_frame[i]->camera_projection[3];	// get projection point on camera4
-			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);							// get original RGB values for this pixel
-			cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);							// get original RGB values for this pixel
 
-			//Store rgb values for camera3
-			Mat rgb_r(1, 3, CV_64FC1);
-			rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
-			rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
-			rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+			std::vector<Voxel*> actual_occluded = visible_voxels[i]->voxels_occluded;		//take vector with possible occlusions
+			bool occluding_voxels_on = false;
 
-			//Store rgb values for camera4
-			Mat rgb_r2(1, 3, CV_64FC1);
-			rgb_r2.at<double>(0, 0) = static_cast<int>(rgb2[0]);
-			rgb_r2.at<double>(0, 1) = static_cast<int>(rgb2[1]);
-			rgb_r2.at<double>(0, 2) = static_cast<int>(rgb2[2]);
+			for (int k = 0; k < actual_occluded.size(); k++) {
 
-			//assign to samples based on label number
-			switch (label_no) {
-			case 0:
-				samples1.push_back(rgb_r);
-				samples1.push_back(rgb_r2);
-				break;
-			case 1:
-				samples2.push_back(rgb_r);
-				samples2.push_back(rgb_r2);
-				break;
-			case 2:
-				samples3.push_back(rgb_r);
-				samples3.push_back(rgb_r2);
-				break;
-			case 3:
-				samples4.push_back(rgb_r);
-				samples4.push_back(rgb_r2);
-				break;
+				while (!occluding_voxels_on) {
+					if (std::find(visible_voxels.begin(), visible_voxels.end(), actual_occluded[k]) != visible_voxels.end()) {		//for all the visible voxels, find if the actual_occluded is on
+						occluding_voxels_on = true;
+					}
+				}
+			}
+
+			if (!occluding_voxels_on) {
+				const Point point_forrgb = visible_voxels_frame[i]->camera_projection[2];	// get projection point on camera3
+				const Point point_forrgb2 = visible_voxels_frame[i]->camera_projection[3];	// get projection point on camera4
+				cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);							// get original RGB values for this pixel
+				cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);							// get original RGB values for this pixel
+
+				//Store rgb values for camera3
+				Mat rgb_r(1, 3, CV_64FC1);
+				rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
+				rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+				rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+				//Store rgb values for camera4
+				Mat rgb_r2(1, 3, CV_64FC1);
+				rgb_r2.at<double>(0, 0) = static_cast<int>(rgb2[0]);
+				rgb_r2.at<double>(0, 1) = static_cast<int>(rgb2[1]);
+				rgb_r2.at<double>(0, 2) = static_cast<int>(rgb2[2]);
+
+				//assign to samples based on label number
+				switch (label_no) {
+				case 0:
+					samples1.push_back(rgb_r);
+					samples1.push_back(rgb_r2);
+					break;
+				case 1:
+					samples2.push_back(rgb_r);
+					samples2.push_back(rgb_r2);
+					break;
+				case 2:
+					samples3.push_back(rgb_r);
+					samples3.push_back(rgb_r2);
+					break;
+				case 3:
+					samples4.push_back(rgb_r);
+					samples4.push_back(rgb_r2);
+					break;
+				}
 			}
 		}
 
