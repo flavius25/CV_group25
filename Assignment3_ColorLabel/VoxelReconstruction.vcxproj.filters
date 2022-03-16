@@ -36,8 +36,8 @@
     <ClCompile Include="src\controllers\Scene3DRenderer.cpp">
       <Filter>src\controllers</Filter>
     </ClCompile>
-    <ClCompile Include="src\controllers\Scene3DRenderer_oldsmooth.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\controllers\Hungarian.cpp">
+      <Filter>src\controllers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +60,9 @@
       <Filter>src\controllers</Filter>
     </ClInclude>
     <ClInclude Include="src\controllers\Scene3DRenderer.h">
+      <Filter>src\controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\controllers\Hungarian.h">
       <Filter>src\controllers</Filter>
     </ClInclude>
   </ItemGroup>

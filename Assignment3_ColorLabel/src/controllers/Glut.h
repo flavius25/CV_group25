@@ -40,6 +40,7 @@ class Glut
 	static void drawVoxels();
 	static void drawWCoord();
 	static void drawInfo();
+	static void drawTracking();
 
 	static inline void perspectiveGL(
 			GLdouble, GLdouble, GLdouble, GLdouble);
@@ -74,8 +75,6 @@ public:
 	static void reset();
 	static void idle();
 	static void display();
-	static void cluster();
-	static void matchclusters();
 	static void update(
 			int);
 	static void quit();

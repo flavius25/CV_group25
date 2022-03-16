@@ -14,12 +14,9 @@
     <ClCompile Include="src\controllers\arcball.cpp" />
     <ClCompile Include="src\controllers\Camera.cpp" />
     <ClCompile Include="src\controllers\Glut.cpp" />
+    <ClCompile Include="src\controllers\Hungarian.cpp" />
     <ClCompile Include="src\controllers\Reconstructor.cpp" />
     <ClCompile Include="src\controllers\Scene3DRenderer.cpp" />
-    <ClCompile Include="src\controllers\Scene3DRenderer_oldsmooth.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\utilities\General.cpp" />
     <ClCompile Include="src\VoxelReconstruction.cpp" />
@@ -28,6 +25,7 @@
     <ClInclude Include="src\controllers\arcball.h" />
     <ClInclude Include="src\controllers\Camera.h" />
     <ClInclude Include="src\controllers\Glut.h" />
+    <ClInclude Include="src\controllers\Hungarian.h" />
     <ClInclude Include="src\controllers\Reconstructor.h" />
     <ClInclude Include="src\controllers\Scene3DRenderer.h" />
     <ClInclude Include="src\utilities\General.h" />

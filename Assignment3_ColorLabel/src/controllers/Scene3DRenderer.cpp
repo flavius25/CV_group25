@@ -114,17 +114,7 @@ bool Scene3DRenderer::processFrame()
 			m_cameras[c]->getVideoFrame(m_current_frame);
 		}
 		assert(m_cameras[c] != NULL);
-
-		//for counting execution time. flag before functiontime
-		auto start = high_resolution_clock::now();
 		processForeground(m_cameras[c]);
-		// After function call
-		auto stop = high_resolution_clock::now();
-		auto duration = duration_cast<milliseconds>(stop - start);
-
-		// To get the value of duration use the count()
-		// member function on the duration object
-		//std::cout << duration.count() << endl;
 	}
 	return true;
 }
@@ -143,126 +133,12 @@ void Scene3DRenderer::processForeground(
 	Mat video_frame;
 	video_frame = camera->getFrame();						  //get the frame from the video
 
-	/*--------------------XOR optimization frame-to-frame--------------not workingyet
-	Mat video_frame_last;
+	camera->pBackSub->apply(video_frame, foregroundMask, 0); //learningrate is 0, we don't want to "learn" at this stage
 
-	bool first_time = true;
-
-	assert(!camera->getFrame().empty());
-	Mat video_frame, video_frame_thres, video_frame_last_thres, result_xor;
-	video_frame = camera->getFrame();
-
-	//video_frame.copyTo(images);
-
-	video_frame_last = camera->getFrame();
-	//video = camera->getVideo();
-
-
-	//if (first_time) {
-	//	video_frame_last = video_frame.clone();
-	//	first_time = false;
-	//}
-
-	//for vide_frame
-	cvtColor(video_frame, video_frame_thres, CV_RGB2GRAY);
-	threshold(video_frame_thres, video_frame_thres, 70, 255, CV_THRESH_BINARY);
-
-	//for last video_frame
-	cvtColor(video_frame_last, video_frame_last_thres, CV_RGB2GRAY);
-	threshold(video_frame_last_thres, video_frame_last_thres, 70, 255, CV_THRESH_BINARY);
-
-	bitwise_xor(video_frame_thres, video_frame_last_thres, result_xor);
-
-	imshow("video_frame_thres", video_frame_thres);
-	imshow("video_frame_last_thres", video_frame_last_thres);
-	imshow("bitwise", result_xor);
-
-    video_frame_last = video_frame.clone(); // to be set after if conditions
-
-	*/
-
-	//if (camera->getId() == 2) {
-
-	//	vector<vector<Point>> contours;  //define vector for contours
-
-	//	//get frame from the video
-	//	camera->pBackSub->apply(video_frame, foregroundMask, 0); //learningrate is 0, we don't want to "learn" at this stage
-
-	//	//post_processing (perform opening with 3x3)
-	//	int morph_size = 1;
-	//	Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2 * morph_size + 1, 2 * morph_size + 1), Point(morph_size, morph_size));
-	//	morphologyEx(foregroundMask, foregroundMask, 2, element); //operation 2 for opening = erosion + dilation (smoothing the image)
-
-	//	Mat inverted = foregroundMask.clone();
-	//	Mat thresh;
-	//	bitwise_not(foregroundMask, inverted);
-	//	threshold(inverted, thresh, 100, 255, THRESH_BINARY);
-	//	bitwise_not(thresh, thresh);
-
-	//	findContours(thresh, contours, RETR_TREE, CHAIN_APPROX_SIMPLE); //find contours
-
-	//	//find maximum blob on the 1st level
-	//	double maxArea = 0;
-	//	int maxAreaContourId = -1;
-	//	for (int j = 0; j < contours.size(); j++) {
-	//		double newArea = cv::contourArea(contours.at(j));
-	//		if (newArea > maxArea) {
-	//			maxArea = newArea;
-	//			maxAreaContourId = j;
-	//		} // End if
-	//	} // End for
-
-	//	//eliminate maximum area on the 1st level
-	//	vector<vector<Point>> contours2;
-
-	//	for (int i = maxAreaContourId+1; i < contours.size();i++) {
-	//		contours2.push_back(contours.at(i));
-	//	}
-
-	//	//find maximum blob on the 2nd level
-	//	maxArea = 0;
-	//	maxAreaContourId = -1;
-	//	int maxContourIdchair_legs = -1;
-	//	for (int j = 0; j < contours2.size(); j++) {
-	//		double newArea = cv::contourArea(contours2.at(j));
-	//		if (newArea > maxArea) {
-	//			maxArea = newArea;
-	//			maxAreaContourId = j;
-	//			maxContourIdchair_legs = j;
-	//		} // End if
-	//	} // End for
-
-
-	//	//eliminate maximum area on the 2nd level
-	//	vector<vector<Point>> contours3;
-
-	//	for (int i = maxAreaContourId + 1; i < contours2.size();i++) {
-	//		contours3.push_back(contours2.at(i));
-	//	}
-
-	//	//find maximum blob on the 3rd level
-	//	maxArea = 0;
-	//	maxAreaContourId = -1;
-	//	for (int j = 0; j < contours3.size(); j++) {
-	//		double newArea = cv::contourArea(contours3.at(j));
-	//		if (newArea > maxArea) {
-	//			maxArea = newArea;
-	//			maxAreaContourId = j;
-	//		} // End if
-	//	} // End for
-
-	//	drawContours(foregroundMask, contours3, maxAreaContourId, Scalar(255, 255, 255), -1); //identified hole in camera 3 and filled the gap
-	//	drawContours(foregroundMask, contours2, maxContourIdchair_legs, Scalar(0, 0, 0), -1); //space between chair and legs for camera 3 is better contoured with this method.
-	//}
-	//else {
-
-		camera->pBackSub->apply(video_frame, foregroundMask, 0); //learningrate is 0, we don't want to "learn" at this stage
-
-		//post_processing (perform opening with 3x3)
-		int morph_size = 2;
-		Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2 * morph_size + 1, 2 * morph_size + 1), Point(morph_size, morph_size));
-		morphologyEx(foregroundMask, foregroundMask, 2, element); //operation 2 for opening = erosion + dilation (smoothing the image)
-	//}
+	//post_processing (perform opening with 3x3)
+	int morph_size = 2;
+	Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2 * morph_size + 1, 2 * morph_size + 1), Point(morph_size, morph_size));
+	morphologyEx(foregroundMask, foregroundMask, 2, element); //operation 2 for opening = erosion + dilation (smoothing the image)
 
 	camera->setForegroundImage(foregroundMask);
 }

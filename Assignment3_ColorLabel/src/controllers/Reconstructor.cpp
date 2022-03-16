@@ -6,17 +6,23 @@
  */
 
 #include "Reconstructor.h"
+#include "Hungarian.h"
 
+#include <opencv2/opencv.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/operations.hpp>
 #include <opencv2/core/types_c.h>
+#include <math.h>
 #include <cassert>
 #include <iostream>
+#include <iterator>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include "../utilities/General.h"
 
 using namespace std;
 using namespace cv;
+using namespace cv::ml;
 
 namespace nl_uu_science_gmt
 {
@@ -28,7 +34,7 @@ namespace nl_uu_science_gmt
 Reconstructor::Reconstructor(
 		const vector<Camera*> &cs) :
 				m_cameras(cs),
-				m_height(2048),
+				m_height(2560), //2048 for debug //2560 optimal
 				m_step(32)
 {
 	for (size_t c = 0; c < m_cameras.size(); ++c)
@@ -66,10 +72,10 @@ Reconstructor::~Reconstructor()
 void Reconstructor::initialize()
 {
 	// Cube dimensions from [(-m_height, m_height), (-m_height, m_height), (0, m_height)]
-	const int xL = -m_height;
-	const int xR = m_height;
-	const int yL = -m_height;
-	const int yR = m_height;
+	const int xL = -m_height - 1000;
+	const int xR = m_height - 1000;
+	const int yL = -m_height + 500;
+	const int yR = m_height + 500;
 	const int zL = 0;
 	const int zR = m_height;
 	const int plane_y = (yR - yL) / m_step;
@@ -155,18 +161,22 @@ void Reconstructor::initialize()
  */
 void Reconstructor::update()
 {
+	countFrames++; //to find current frame.
+
 	m_visible_voxels.clear();
 	std::vector<Voxel*> visible_voxels;
+	std::vector<Voxel*> visible_voxels_frame;
 
 	int v;
 #pragma omp parallel for schedule(static) private(v) shared(visible_voxels)
-	for (v = 0; v < (int) m_voxels_amount; ++v)
+	for (v = 0; v < (int)m_voxels_amount; ++v)
 	{
 		int camera_counter = 0;
 		Voxel* voxel = m_voxels[v];
 
 		for (size_t c = 0; c < m_cameras.size(); ++c)
 		{
+
 			if (voxel->valid_camera_projection[c])
 			{
 				const Point point = voxel->camera_projection[c];
@@ -174,17 +184,277 @@ void Reconstructor::update()
 				//If there's a white pixel on the foreground image at the projection point, add the camera
 				if (m_cameras[c]->getForegroundImage().at<uchar>(point) == 255) ++camera_counter;
 			}
+
 		}
 
 		// If the voxel is present on all cameras
-		if (camera_counter == m_cameras.size())
+		if (camera_counter == m_cameras.size())			//for online
 		{
 #pragma omp critical //push_back is critical
-			visible_voxels.push_back(voxel);
+			visible_voxels.push_back(voxel);			
+			if (countFrames == 533)						//for offline, for Frame 533, store in a different vector
+			{
+#pragma omp critical //push_back is critical
+				visible_voxels_frame.push_back(voxel);	
+			}
 		}
+
 	}
 
-	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
+
+
+	// *O	
+	// *	F
+	// *		F
+	// *			L
+	// *				I
+	// *					N
+	// *						E
+
+
+	//OFFLINE PHASE    -- only run once
+	if (!visible_voxels_frame.empty()) {
+		vector<Point2f> groundCoordinates_frame(visible_voxels_frame.size());
+		for (int i = 0; i < (int)visible_voxels_frame.size(); i++) {
+
+			if (visible_voxels_frame[i]->z > (m_height * 1.5 / 5))		//we only take the points that we are interested in (upper-body)
+			{
+				groundCoordinates_frame[i] = Point2f(visible_voxels_frame[i]->x, visible_voxels_frame[i]->y);		//take ground coordinates so we can run kmeans
+			}
+		}
+		std::vector<int> labels_frame;
+		kmeans(groundCoordinates_frame, 4, labels_frame, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers_frame);	//run kmeans to obtain labels and centers
+
+		//get currentframe in matrixes for camera 3 and camera 4
+		Mat img = m_cameras[2]->getFrame();
+		Mat img2 = m_cameras[3]->getFrame();
+
+		//Define Matrix for samples
+		Mat samples1;
+		Mat samples2;
+		Mat samples3;
+		Mat samples4;
+
+		//assign visible_voxels_frame to labels and store rgb values corresponding to the projecting points from camera 3 and camera 4 in the samples matrixes
+		for (int i = 0; i < visible_voxels_frame.size(); i++) {
+			visible_voxels_frame[i]->label = labels_frame[i];
+			int label_no = labels_frame[i];
+
+				const Point point_forrgb = visible_voxels_frame[i]->camera_projection[2];		//get projection point on camera3
+				const Point point_forrgb2 = visible_voxels_frame[i]->camera_projection[3];		//get projection point on camera4
+				cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);								//get original RGB values for this pixel
+				cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);								//get original RGB values for this pixel
+
+				//Store rgb values for camera3
+				Mat rgb_r(1, 3, CV_64FC1);
+				rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);		
+				rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+				rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+				//Store rgb values for camera4
+				Mat rgb_r2(1, 3, CV_64FC1);
+				rgb_r2.at<double>(0, 0) = static_cast<int>(rgb2[0]);
+				rgb_r2.at<double>(0, 1) = static_cast<int>(rgb2[1]);
+				rgb_r2.at<double>(0, 2) = static_cast<int>(rgb2[2]);
+
+				//assign to samples based on label number
+				switch (label_no) {
+				case 0:
+					samples1.push_back(rgb_r);
+					samples1.push_back(rgb_r2);
+					break;
+				case 1:
+					samples2.push_back(rgb_r);
+					samples2.push_back(rgb_r2);
+					break;
+				case 2:
+					samples3.push_back(rgb_r);
+					samples3.push_back(rgb_r2);
+					break;
+				case 3:
+					samples4.push_back(rgb_r);
+					samples4.push_back(rgb_r2);
+					break;
+				}
+		}
+
+		int no_clusters = 2; //Set 2 as the number of clusters to model the samples
+
+		//Create model 1
+		Ptr<EM> GMM_model1 = EM::create();
+		//Initialise number of clusters to look for 
+		GMM_model1->setClustersNumber(no_clusters);
+		//Set covariance matrix type
+		GMM_model1->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
+		//Set convergence conditions
+		GMM_model1->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
+		//Store the probability partition to labs EM according to the sample training
+		GMM_model1->trainEM(samples1);
+
+		//Create model 2  
+		Ptr<EM> GMM_model2 = EM::create();
+		GMM_model2->setClustersNumber(no_clusters);
+		GMM_model2->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
+		GMM_model2->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
+		GMM_model2->trainEM(samples2);
+
+		//Create model 3 
+		Ptr<EM> GMM_model3 = EM::create(); 
+		GMM_model3->setClustersNumber(no_clusters);
+		GMM_model3->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
+		GMM_model3->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
+		GMM_model3->trainEM(samples3);
+
+		//Create model 4
+		Ptr<EM> GMM_model4 = EM::create();
+		GMM_model4->setClustersNumber(no_clusters);
+		GMM_model4->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
+		GMM_model4->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
+		GMM_model4->trainEM(samples4);
+
+		//Save model in xml-file
+		GMM_model1->save("GMM_model1.xml");
+		GMM_model2->save("GMM_model2.xml");
+		GMM_model3->save("GMM_model3.xml");
+		GMM_model4->save("GMM_model4.xml");
+	}
+
+
+
+
+
+
+	// *O	
+	// *	N
+	// *		L
+	// *			I
+	// *				N
+	// *					E
+
+
+	//ONLINE PHASE
+	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());  //add visible voxels to global variable for processing in Glut
+	vector<Point2f> groundCoordinates(visible_voxels.size());
+
+	for (int i = 0; i < (int)visible_voxels.size(); i++) {
+			groundCoordinates[i] = Point2f(visible_voxels[i]->x, visible_voxels[i]->y);				//take ground coordinates so we can run kmeans
+	}
+
+	std::vector<int> labels;																		//labels
+
+	kmeans(groundCoordinates, 4, labels, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);	//run kmeans to obtain labels and centers
+
+	//load the GMM_models
+	Ptr<EM> GMM_model1 = EM::load("GMM_model1.xml");
+	Ptr<EM> GMM_model2 = EM::load("GMM_model2.xml");
+	Ptr<EM> GMM_model3 = EM::load("GMM_model3.xml");
+	Ptr<EM> GMM_model4 = EM::load("GMM_model4.xml");
+
+	//get currentframe in matrixes for camera 3 and camera 4
+	Mat img = m_cameras[2]->getFrame();
+	Mat img2 = m_cameras[3]->getFrame();
+
+	//Define Matrix for samples
+	Mat samples1;
+	Mat samples2;
+	Mat samples3;
+	Mat samples4;
+
+	//assign visible_voxels_frame to labels and store rgb values corresponding to the projecting points from camera 3 and camera 4 in the samples matrixes
+	for (int i = 0; i < visible_voxels.size(); i++) {
+		visible_voxels[i]->label = labels[i];
+		int label_no = labels[i];
+
+		if (visible_voxels[i]->z > (m_height * 1.5 / 5))			//we only take the points that we are interested in (upper-body)
+		{
+
+			const Point point_forrgb = visible_voxels[i]->camera_projection[2];		//get projection point on camera3
+			const Point point_forrgb2 = visible_voxels[i]->camera_projection[3];	//get projection point on camera4
+
+			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);						//get original RGB values for this pixel
+			cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);						//get original RGB values for this pixel
+			
+			//Store rgb values for camera3
+			Mat rgb_r(1, 3, CV_64FC1);
+			rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
+			rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+			rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+			//Store rgb values for camera4
+			Mat rgb_r2(1, 3, CV_64FC1);
+			rgb_r2.at<double>(0, 0) = static_cast<int>(rgb2[0]);
+			rgb_r2.at<double>(0, 1) = static_cast<int>(rgb2[1]);
+			rgb_r2.at<double>(0, 2) = static_cast<int>(rgb2[2]);
+
+			//assign to samples based on label number (Similar to offline phase)
+			switch (label_no) {
+			case 0:
+				samples1.push_back(rgb_r);
+				samples1.push_back(rgb_r2);
+				break;
+			case 1:
+				samples2.push_back(rgb_r);
+				samples2.push_back(rgb_r2);
+				break;
+			case 2:
+				samples3.push_back(rgb_r);
+				samples3.push_back(rgb_r2);
+				break;
+			case 3:
+				samples4.push_back(rgb_r);
+				samples4.push_back(rgb_r2);
+				break;
+			}
+		}
+
+	}
+
+	//Define an Array of all samples to be combined into one
+	vector <Mat> matVec = { samples1, samples2, samples3, samples4 }; 
+
+	vector <int> final_labels;					//Define vector to store final_labels
+	vector <vector <double>> costMatrix;		//Define costMatrix to store final likelihood logarithm values for each sample
+
+	//for each sample, for each row of the sample, predict the label
+	for (int m = 0; m < matVec.size(); m++){							
+		int nr_rows = matVec[m].rows;
+		vector <double> sums = {0.0, 0.0, 0.0, 0.0};						
+		for (int r = 0; r < nr_rows; r++){
+			Mat row(1, 3, CV_64FC1);
+			row.at<double>(0,0) = matVec[m].at<double>(r, 0);
+			row.at<double>(0,1) = matVec[m].at<double>(r, 1);
+			row.at<double>(0,2) = matVec[m].at<double>(r, 2);
+			//Predict label for each RGB row
+			//We apply abs on predict2 since likelihood logarithm value is negativeand we want to apply Hungarian algorithm for matching shortest distance.
+			sums[0] += abs(GMM_model1->predict2(row, noArray())[0]);		//add the likelihood logarithm value returned by predict2 in a vector for each row
+			sums[1] += abs(GMM_model2->predict2(row, noArray())[0]);		//add the likelihood logarithm value returned by predict2 in a vector for each row 
+			sums[2] += abs(GMM_model3->predict2(row, noArray())[0]);		//add the likelihood logarithm value returned by predict2 in a vector for each row 
+			sums[3] += abs(GMM_model4->predict2(row, noArray())[0]);		//add the likelihood logarithm value returned by predict2 in a vector for each row 
+		}
+		costMatrix.push_back(sums);				//store final sums vector in the costMatrix
+	}
+
+	//Create HungarianAlgorithm object
+	HungarianAlgorithm HungAlgo;
+
+	//find label for each sample by finding the shortest path (minimum value per row)
+	double cost = HungAlgo.Solve(costMatrix, final_labels);
+	
+	center_labels.resize(final_labels.size());	
+
+	//For tracking, store centers based on labels
+	for (int i = 0; i < final_labels.size(); i++){
+		Vec2f center = centers.row(i);
+		int color_index = final_labels[i];
+		center_labels[color_index].push_back(center);	
+	}
+
+	//assign a color based on matched label
+	for (int i = 0; i < (int)visible_voxels.size(); i++) {
+		int lb = visible_voxels[i]->label;
+		int color_index = final_labels[lb];
+		visible_voxels[i]->color = color_tab[color_index];
+	}
 }
 
 } /* namespace nl_uu_science_gmt */

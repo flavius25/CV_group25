@@ -212,11 +212,9 @@ int Glut::initializeWindows(const char* win_name)
  */
 void Glut::mainLoopWindows()
 {
-	cluster();
 	while(!m_Glut->getScene3d().isQuit())
 	{
 		update(0);
-		matchclusters();
 		display();
 	}
 }
@@ -526,6 +524,7 @@ void Glut::idle()
 #endif
 }
 
+
 /**
  * Render the 3D scene
  */
@@ -545,6 +544,7 @@ void Glut::display()
 
 	arcball_rotate();
 
+	Mat center_circle = m_Glut->getScene3d().getReconstructor().getCenters();
 	Scene3DRenderer& scene3d = m_Glut->getScene3d();
 	if (scene3d.isShowGrdFlr())
 		drawGrdGrid();
@@ -556,6 +556,7 @@ void Glut::display()
 		drawArcball();
 
 	drawVoxels();
+	drawTracking();
 
 	if (scene3d.isShowOrg())
 		drawWCoord();
@@ -569,161 +570,6 @@ void Glut::display()
 #elif defined _WIN32
 	SwapBuffers(scene3d.getHDC());
 #endif
-}
-
-
-void Glut::cluster() {
-	// voor meerdere cameras, dit zijn de beste frames
-	//cam3: frame 400
-	//cam4: frame 890
-	Scene3DRenderer& scene3d = m_Glut->getScene3d();
-
-	scene3d.setCurrentFrame(0);
-	for (size_t c = 0; c < scene3d.getCameras().size(); ++c)
-		scene3d.getCameras()[c]->setVideoFrame(scene3d.getCurrentFrame());
-
-	scene3d.processFrame();
-	scene3d.getReconstructor().update();
-
-	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
-	std::vector<cv::Point2f> points(voxels.size());
-	for (size_t v = 0; v < voxels.size(); v++)
-	{
-		points[v] = Point2f(voxels[v]->x, voxels[v]->y);
-	}
-	vector<int> labels;
-	Mat centers;
-	kmeans(points, 4, labels, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
-	const int persons = 4;
-	const int colordimensions = 3;
-	const int binsnr = 16;
-	float bins[persons][colordimensions][binsnr] = {};
-	int sums[persons] = {};
-	Mat frame, hsvframe;
-	frame = scene3d.getCameras()[0]->getFrame();
-	cvtColor(frame, hsvframe, COLOR_RGB2HSV);
-	for (int v = 0; v < voxels.size(); v++)
-	{
-		Point camerapos = voxels[v]->camera_projection[0]; //screen position for first camera
-		Vec3b poscolor = frame.at<Vec3b>(camerapos.y, camerapos.x);
-		bins[labels[v]][0][poscolor.val[2] / 16] += 1; //H
-		bins[labels[v]][1][poscolor.val[1] / 16] += 1; //S
-		bins[labels[v]][2][poscolor.val[0] / 16] += 1; //V
-		sums[labels[v]] += 1;
-	}
-
-	// create matrices for storage
-	Mat binmatrix1 = Mat(Size(colordimensions, binsnr), CV_32FC1, bins[0]);
-	Mat binmatrix2 = Mat(Size(colordimensions, binsnr), CV_32FC1, bins[1]);
-	Mat binmatrix3 = Mat(Size(colordimensions, binsnr), CV_32FC1, bins[2]);
-	Mat binmatrix4 = Mat(Size(colordimensions, binsnr), CV_32FC1, bins[3]);
-
-	// normalize the matrices
-	binmatrix1 = binmatrix1 / sums[0];
-	binmatrix2 = binmatrix2 / sums[1];
-	binmatrix3 = binmatrix3 / sums[2];
-	binmatrix4 = binmatrix4 / sums[3];
-
-	// write to file
-	FileStorage fs(scene3d.getCameras()[0]->getDataPath() + ".." + string(PATH_SEP) + "colorhistograms.xml", FileStorage::WRITE);
-	fs << "p1" << binmatrix1;
-	fs << "p2" << binmatrix2;
-	fs << "p3" << binmatrix3;
-	fs << "p4" << binmatrix4;
-
-}
-
-void Glut::matchclusters() {
-
-	// read data from file
-	Scene3DRenderer& scene3d = m_Glut->getScene3d();
-	FileStorage fs(scene3d.getCameras()[0]->getDataPath() + ".." + string(PATH_SEP) + "colorhistograms.xml", FileStorage::READ);
-	Mat p1, p2, p3, p4;
-	fs["p1"] >> p1;
-	fs["p2"] >> p2;
-	fs["p3"] >> p3;
-	fs["p4"] >> p4;
-
-	// get voxels
-	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
-	std::vector<cv::Point2f> points(voxels.size());
-
-	// read voxel points
-	for (size_t v = 0; v < voxels.size(); v++)
-	{
-		points[v] = Point2f(voxels[v]->x, voxels[v]->y);
-	}
-
-	// cluster the voxels
-	vector<int> labels;
-	Mat centers;
-	kmeans(points, 4, labels, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
-
-	Mat frame, hsvframe;
-	frame = scene3d.getCameras()[0]->getFrame();
-	cvtColor(frame, hsvframe, COLOR_RGB2HSV);
-
-	const int persons = 4;
-	const int colordimensions = 3;
-	const int binsnr = 16;
-	float bins[persons][colordimensions][binsnr] = {};
-	int sums[persons] = {};
-
-	for (int v = 0; v < voxels.size(); v++)
-	{
-		Point camerapos = voxels[v]->camera_projection[0]; //screen position for first camera
-		Vec3b poscolor = frame.at<Vec3b>(camerapos.y, camerapos.x);
-		bins[labels[v]][0][poscolor.val[2] / 16] += 1; //H
-		bins[labels[v]][1][poscolor.val[1] / 16] += 1; //S
-		bins[labels[v]][2][poscolor.val[0] / 16] += 1; //V
-		sums[labels[v]] += 1;
-	}
-
-	// create matrices
-	Mat binmatrix1 = Mat(Size(colordimensions, binsnr), CV_32FC1, bins[0]);
-	Mat binmatrix2 = Mat(Size(colordimensions, binsnr), CV_32FC1, bins[1]);
-	Mat binmatrix3 = Mat(Size(colordimensions, binsnr), CV_32FC1, bins[2]);
-	Mat binmatrix4 = Mat(Size(colordimensions, binsnr), CV_32FC1, bins[3]);
-
-	// normalize the matrices
-	binmatrix1 = binmatrix1 / sums[0];
-	binmatrix2 = binmatrix2 / sums[1];
-	binmatrix3 = binmatrix3 / sums[2];
-	binmatrix4 = binmatrix4 / sums[3];
-
-	// calculate distances and choose best matches
-	Mat onlinehistograms[4] = { binmatrix1,binmatrix2,binmatrix3, binmatrix4 };
-	Mat offlinehistograms[4] = { p1,p2,p3, p4 };
-	int bestmatches[4] = {};
-	for (size_t i = 0; i < 4; i++)
-	{
-		Mat off = offlinehistograms[i];
-		float lowestdist = FLT_MAX;
-		int bestmatch;
-		for (size_t ii = 0; ii < 4; ii++)
-		{
-			Mat on = onlinehistograms[ii];
-			float totaldist = 0;
-			for (size_t c = 0; c < colordimensions; c++)
-			{
-				for (size_t b = 0; b < binsnr; b++)
-				{
-					float v1 = off.at<float>(b, c);
-					float v2 = on.at<float>(b, c);
-					float dist = 0;
-					if (v1 != v2)
-						dist = ((v1 - v2) * (v1 - v2)) / (v1 + v2);
-					totaldist += dist;
-				}
-			}
-			if (totaldist < lowestdist) {
-				lowestdist = totaldist;
-				bestmatch = ii;
-			}
-		}
-		bestmatches[i] = bestmatch;
-	}
-	//cout << "cluster center for person 0: " << centers.at<Point2f>(bestmatches[0],0) << endl;
 }
 
 /**
@@ -822,6 +668,34 @@ void Glut::update(
 #endif
 }
 
+/*Function track path of a person*/
+void Glut::drawTracking()
+{
+
+	glLineWidth(1.5f);
+	glPushMatrix();
+	glBegin(GL_POINTS);
+
+	std::vector <cv::Vec3f> color_tab = {
+		{0,0,255},  //RGB
+		{0,255,0},
+		{255,0,0},
+		{255,0,255}
+    };
+	
+	std::vector<std::vector <cv::Vec2f>> colorCenters = m_Glut->getScene3d().getReconstructor().getColorCenters();	
+
+	for (int i = 0; i < colorCenters.size();i++){
+		glColor3f(color_tab[i][2], color_tab[i][1], color_tab[i][0]);							//color each cluster
+		for (int k = 0; k < colorCenters[i].size(); k++){
+			glVertex2f((GLfloat) colorCenters[i][k][0], (GLfloat) colorCenters[i][k][1]);		//update centers for each vector of Vec2f
+		}	
+	}
+
+	glEnd();
+	glPopMatrix();
+}
+
 /**
  * Draw the floor
  */
@@ -846,7 +720,6 @@ void Glut::drawGrdGrid()
 		glVertex3f((GLfloat) floor_grid[1][g]->x, (GLfloat) floor_grid[1][g]->y, (GLfloat) floor_grid[1][g]->z);
 		glVertex3f((GLfloat) floor_grid[3][g]->x, (GLfloat) floor_grid[3][g]->y, (GLfloat) floor_grid[3][g]->z);
 	}
-
 	glEnd();
 	glPopMatrix();
 }
@@ -1012,7 +885,7 @@ void Glut::drawVoxels()
 	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
 	for (size_t v = 0; v < voxels.size(); v++)
 	{
-		glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+		glColor3f(voxels[v]->color[2], voxels[v]->color[1], voxels[v]->color[0]);
 		glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
 	}
 
