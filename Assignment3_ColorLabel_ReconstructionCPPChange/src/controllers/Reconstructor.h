@@ -61,6 +61,7 @@ private:
 	std::vector<Voxel*> m_voxels;           // Pointer vector to all voxels in the half-space
 	std::vector<Voxel*> m_visible_voxels;   // Pointer vector to all visible voxels
 	std::vector<Voxel*> m_visible_voxels_frame;   // Pointer vector to all visible voxels from specified frame
+	std::vector <std::vector <cv::Vec2f>> center_labels; //Vector used to track which centers belong to which person over time
 
 	void initialize();
 
@@ -121,6 +122,10 @@ public:
 	const cv::Mat& getCenters() const
 	{
 		return centers;
+	}
+	const std::vector <std::vector <cv::Vec2f>>& getColorCenters() const
+	{
+		return center_labels;
 	}
 
 	const cv::Mat& getCentersFrame() const

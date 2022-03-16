@@ -198,7 +198,7 @@ void Reconstructor::update()
 		{
 #pragma omp critical //push_back is critical
 			visible_voxels.push_back(voxel);			//for online
-			if (countFrames == 4)
+			if (countFrames == 533)
 			{
 #pragma omp critical //push_back is critical
 				visible_voxels_frame.push_back(voxel);	//for offline
@@ -225,7 +225,7 @@ void Reconstructor::update()
 		vector<Point2f> groundCoordinates_frame(visible_voxels_frame.size());
 		for (int i = 0; i < (int)visible_voxels_frame.size(); i++) {
 
-			if (visible_voxels_frame[i]->z > (m_height * 2 / 5))		//we only take the points that we are interested in (upper-body)
+			if (visible_voxels_frame[i]->z > (m_height * 1.5 / 5))		//we only take the points that we are interested in (upper-body)
 			{
 				groundCoordinates_frame[i] = Point2f(visible_voxels_frame[i]->x, visible_voxels_frame[i]->y);
 			}
@@ -234,8 +234,8 @@ void Reconstructor::update()
 		kmeans(groundCoordinates_frame, 4, labels_frame, TermCriteria(CV_TERMCRIT_ITER, 10, 1.0), 3, KMEANS_PP_CENTERS, centers_frame);
 
 		//get currentframe in img
-		Mat img = m_cameras[1]->getFrame();
-		//Mat img2 = m_cameras[2]->getFrame();
+		Mat img = m_cameras[2]->getFrame();
+		Mat img2 = m_cameras[3]->getFrame();
 
 		Mat samples1;
 		Mat samples2;
@@ -246,38 +246,38 @@ void Reconstructor::update()
 		for (int i = 0; i < visible_voxels_frame.size(); i++) {
 			visible_voxels_frame[i]->label = labels_frame[i];
 			int label_no = labels_frame[i];
-	
-				const Point point_forrgb = visible_voxels_frame[i]->camera_projection[1];
-				//const Point point_forrgb2 = visible_voxels_frame[i]->camera_projection[2];
+
+				const Point point_forrgb = visible_voxels_frame[i]->camera_projection[2];
+				const Point point_forrgb2 = visible_voxels_frame[i]->camera_projection[3];
 				cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-				//cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);		//get original RGB values for pixels of interest
+				cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);		//get original RGB values for pixels of interest
 
 				Mat rgb_r(1, 3, CV_64FC1);
 				rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
 				rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
 				rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
-				//Mat rgb_r2(1, 3, CV_64FC1);
-				//rgb_r2.at<double>(0, 0) = static_cast<int>(rgb[0]);
-				//rgb_r2.at<double>(0, 1) = static_cast<int>(rgb[1]);
-				//rgb_r2.at<double>(0, 2) = static_cast<int>(rgb[2]);
+				Mat rgb_r2(1, 3, CV_64FC1);
+				rgb_r2.at<double>(0, 0) = static_cast<int>(rgb2[0]);
+				rgb_r2.at<double>(0, 1) = static_cast<int>(rgb2[1]);
+				rgb_r2.at<double>(0, 2) = static_cast<int>(rgb2[2]);
 
 				switch (label_no) {
 				case 0:
 					samples1.push_back(rgb_r);
-					//samples1.push_back(rgb_r2);
+					samples1.push_back(rgb_r2);
 					break;
 				case 1:
 					samples2.push_back(rgb_r);
-					//samples2.push_back(rgb_r2);
+					samples2.push_back(rgb_r2);
 					break;
 				case 2:
 					samples3.push_back(rgb_r);
-					//samples3.push_back(rgb_r2);
+					samples3.push_back(rgb_r2);
 					break;
 				case 3:
 					samples4.push_back(rgb_r);
-					//samples4.push_back(rgb_r2);
+					samples4.push_back(rgb_r2);
 					break;
 				}
 		}
@@ -390,9 +390,14 @@ void Reconstructor::update()
 	//cout << centers.at<float>(0,1);
 
 	//get currentframe in img
-	Mat img = m_cameras[1]->getFrame();
-	//Mat img2 = m_cameras[2]->getFrame();
-	//Mat img3 = m_cameras[3]->getFrame();
+	Mat img = m_cameras[2]->getFrame();
+	Mat img2 = m_cameras[3]->getFrame();
+	//Mat img3 = m_cameras[1]->getFrame();
+	//Mat img4 = m_cameras[0]->getFrame();
+
+	//cout << centers;
+	//cout << centers.at<float>(0, 0);
+	//cout << centers.at<float>(0, 1);
 
 	//cv::Scalar colorCircle1(0, 0, 255);
 	//cv::Point centerCircle1(centers.at<float>(0, 0), centers.at<float>(0, 1));
@@ -411,50 +416,73 @@ void Reconstructor::update()
 		visible_voxels[i]->label = labels[i];
 		int label_no = labels[i];
 
-		if (visible_voxels[i]->z > (m_height * 2 / 5))
+		if (visible_voxels[i]->z > (m_height * 1.5 / 5))
 		{
+			//m_visible_voxels.push_back(visible_voxels[i]);
+
 			//if (visible_voxels[i]->x == int(centers.at<float>(0, 0)) && visible_voxels[i]->y == int(centers.at<float>(0, 1))) {
 			//	cout << "found";
 			//}
 			//cout << "This is true";
-			const Point point_forrgb = visible_voxels[i]->camera_projection[1];
-			//const Point point_forrgb2 = visible_voxels[i]->camera_projection[2];
-			//const Point point_forrgb3 = visible_voxels[i]->camera_projection[3];
+			const Point point_forrgb = visible_voxels[i]->camera_projection[2];
+			const Point point_forrgb2 = visible_voxels[i]->camera_projection[3];
+			//const Point point_forrgb3 = visible_voxels[i]->camera_projection[1];
+			//const Point point_forrgb4 = visible_voxels[i]->camera_projection[0];
+
+			//cout << point_forrgb.x << "\n";
+			//cout << point_forrgb.y << "\n";
+			//d(visible_voxels[i]->x, visible_voxels[i]->y, point_forrgb->x, point_forrgb->y)    // d(the point of the voxel, and then the point on the camera projection)
+			//if 2 samples have the same rgb value in the same view(camera) then check which *how to get this ->sample point is closer to the we have this->camera* and only include that rgb value for that sample.
+
 			cv::Vec3b rgb = img.at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-			//cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);		//get original RGB values for pixels of interest
+			cv::Vec3b rgb2 = img2.at<cv::Vec3b>(point_forrgb2);		//get original RGB values for pixels of interest
 			//cv::Vec3b rgb3 = img3.at<cv::Vec3b>(point_forrgb3);		//get original RGB values for pixels of interest
+			//cv::Vec3b rgb4 = img4.at<cv::Vec3b>(point_forrgb4);		//get original RGB values for pixels of interest
 			
 			Mat rgb_r(1, 3, CV_64FC1);
 			rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
 			rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
 			rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
 
-			//Mat rgb_r2(1, 3, CV_64FC1);
-			//rgb_r2.at<double>(0, 0) = static_cast<int>(rgb2[0]);
-			//rgb_r2.at<double>(0, 1) = static_cast<int>(rgb2[1]);
-			//rgb_r2.at<double>(0, 2) = static_cast<int>(rgb2[2]);
+			Mat rgb_r2(1, 3, CV_64FC1);
+			rgb_r2.at<double>(0, 0) = static_cast<int>(rgb2[0]);
+			rgb_r2.at<double>(0, 1) = static_cast<int>(rgb2[1]);
+			rgb_r2.at<double>(0, 2) = static_cast<int>(rgb2[2]);
 
 			//Mat rgb_r3(1, 3, CV_64FC1);
 			//rgb_r3.at<double>(0, 0) = static_cast<int>(rgb3[0]);
 			//rgb_r3.at<double>(0, 1) = static_cast<int>(rgb3[1]);
 			//rgb_r3.at<double>(0, 2) = static_cast<int>(rgb3[2]);
 
+			//Mat rgb_r4(1, 3, CV_64FC1);
+			//rgb_r4.at<double>(0, 0) = static_cast<int>(rgb4[0]);
+			//rgb_r4.at<double>(0, 1) = static_cast<int>(rgb4[1]);
+			//rgb_r4.at<double>(0, 2) = static_cast<int>(rgb4[2]);
+
 			switch (label_no) {
 			case 0:
 				samples1.push_back(rgb_r);
-				//samples1.push_back(rgb_r2);
+				samples1.push_back(rgb_r2);
+				//samples1.push_back(rgb_r3);
+				//samples1.push_back(rgb_r4);
 				break;
 			case 1:
 				samples2.push_back(rgb_r);
-				//samples2.push_back(rgb_r2);
+				samples2.push_back(rgb_r2);
+				//samples2.push_back(rgb_r3);
+				//samples2.push_back(rgb_r4);
 				break;
 			case 2:
 				samples3.push_back(rgb_r);
-				//samples3.push_back(rgb_r2);
+				samples3.push_back(rgb_r2);
+				//samples3.push_back(rgb_r3);
+				//samples3.push_back(rgb_r4);
 				break;
 			case 3:
 				samples4.push_back(rgb_r);
-				//samples4.push_back(rgb_r2);
+				samples4.push_back(rgb_r2);
+				//samples4.push_back(rgb_r3);
+				//samples4.push_back(rgb_r4);
 				break;
 			}
 		}
@@ -522,9 +550,21 @@ void Reconstructor::update()
 	// 		row.at<double>(0,1) = allClustersMat.at<double>(r, 1);
 	// 		row.at<double>(0,2) = allClustersMat.at<double>(r, 2);
 	// 		int prediction = cvRound(GMM_model->predict2(row, noArray())[1]);			//fixed the error, no color on the ouput still :D
-	// 		//cout << allClustersMat.at<int>(1);
-	// 		predictions.push_back(prediction);
-	// 	}
+	center_labels.resize(final_labels.size());
+
+	for (int i = 0; i < final_labels.size(); i++){
+		Vec2f center = centers.row(i);
+		//int color_index = final_labels[i];
+		center_labels[i].push_back(center);
+		
+
+		//vector<Vec2f> center_track;
+		//center_track.push_back(center);
+		//cout << center;
+		//cout << centers;
+		//int color_index = final_labels[i];
+		
+	}
 
 	for (int i = 0; i < (int)visible_voxels.size(); i++) {
 		int lb = visible_voxels[i]->label;

@@ -527,22 +527,6 @@ void Glut::idle()
 #endif
 }
 
-void DrawCircle(float cx, float cy, float r, int num_segments)
-{
-	glBegin(GL_TRIANGLE_FAN);
-	glColor3ub(255, 0, 0);
-	for (int ii = 0; ii < num_segments; ii++)
-	{
-		float theta = 2.0f * 3.1415926f * float(ii) / float(num_segments);//get the current angle
-
-		float x = r * cosf(theta);//calculate the x component
-		float y = r * sinf(theta);//calculate the y component
-
-		glVertex2f(x + cx, y + cy);//output vertex
-
-	}
-	glEnd();
-}
 
 /**
  * Render the 3D scene
@@ -578,9 +562,10 @@ void Glut::display()
 	//cout << "\n";
 	//cout << center_circle.at<float>(0, 1);
 
-	DrawCircle((GLfloat)center_circle.at<float>(0, 0), (GLfloat)center_circle.at<float>(0, 1), 1000, 360);
+	//drawCircle((GLfloat)center_circle.at<float>(0, 0), (GLfloat)center_circle.at<float>(0, 1), 1000, 360);
 
 	drawVoxels();
+	drawTracking();
 
 	if (scene3d.isShowOrg())
 		drawWCoord();
@@ -597,38 +582,38 @@ void Glut::display()
 }
 
 
-void Glut::cluster() {
-	//find a frame
-	//frame 0-50 camera2
-	//frame 514 camera4
-	//frame 1244/2235 camera3
-	Scene3DRenderer& scene3d = m_Glut->getScene3d();
+// void Glut::cluster() {
+// 	//find a frame
+// 	//frame 0-50 camera2
+// 	//frame 514 camera4
+// 	//frame 1244/2235 camera3
+// 	Scene3DRenderer& scene3d = m_Glut->getScene3d();
 
-	scene3d.setCurrentFrame(514);
-	for (size_t c = 0; c < scene3d.getCameras().size(); ++c)
-		if (c == 3) {
-			scene3d.getCameras()[c]->setVideoFrame(scene3d.getCurrentFrame());
-		}
-		else {
-			cout << "nope";
-		}
+// 	scene3d.setCurrentFrame(514);
+// 	for (size_t c = 0; c < scene3d.getCameras().size(); ++c)
+// 		if (c == 3) {
+// 			scene3d.getCameras()[c]->setVideoFrame(scene3d.getCurrentFrame());
+// 		}
+// 		else {
+// 			cout << "nope";
+// 		}
 
-	scene3d.processFrame();
-	scene3d.getReconstructor().update();
+// 	scene3d.processFrame();
+// 	scene3d.getReconstructor().update();
 
-	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
+// 	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
 
-	//Mat centers_now = m_Glut->getScene3d().getReconstructor().getCenters(); //to modify them to a vector<float> maybe
-	vector<int> labels_now = m_Glut->getScene3d().getReconstructor().getLabels();
+// 	//Mat centers_now = m_Glut->getScene3d().getReconstructor().getCenters(); //to modify them to a vector<float> maybe
+// 	vector<int> labels_now = m_Glut->getScene3d().getReconstructor().getLabels();
 
-	for (size_t l = 0; l < labels_now.size(); l++) {
-		cout << labels_now[l];
-	}
-	//cout << centers_now;
+// 	for (size_t l = 0; l < labels_now.size(); l++) {
+// 		cout << labels_now[l];
+// 	}
+// 	//cout << centers_now;
 
 
-	//do something with labels with colors stuff
-}
+// 	//do something with labels with colors stuff
+// }
 
 void Glut::colormodel() {
 
@@ -743,6 +728,41 @@ void Glut::update(
 #endif
 }
 
+
+void Glut::drawTracking()
+{
+	//glTranslatef(0, 0, 0);
+	glLineWidth(1.5f);
+	glPushMatrix();
+	//glClear( GL_COLOR_BUFFER_BIT);
+	glBegin(GL_POINTS);
+	//glPointSize(10.0f);
+
+	std::vector <cv::Vec3f> color_tab = {
+		{0,0,255},  //RGB
+		{0,255,0},
+		{255,0,0},
+		{255,0,255}
+    };
+	
+	std::vector<std::vector <cv::Vec2f>> colorCenters = m_Glut->getScene3d().getReconstructor().getColorCenters();
+
+	for (int i = 0; i < colorCenters.size();i++){
+		glColor3f(color_tab[i][2], color_tab[i][1], color_tab[i][0]);
+		//cout << color_tab[i][2] << "\n";
+		for (int k = 0; k < colorCenters[i].size(); k++){
+			glVertex2f((GLfloat) colorCenters[i][k][0], (GLfloat) colorCenters[i][k][1]);
+			//cout << colorCenters[i][k][0] << "\n";
+			//cout << colorCenters[0][0][0];
+		}	
+	}
+
+
+	
+	glEnd();
+	glPopMatrix();
+}
+
 /**
  * Draw the floor
  */
@@ -767,7 +787,6 @@ void Glut::drawGrdGrid()
 		glVertex3f((GLfloat) floor_grid[1][g]->x, (GLfloat) floor_grid[1][g]->y, (GLfloat) floor_grid[1][g]->z);
 		glVertex3f((GLfloat) floor_grid[3][g]->x, (GLfloat) floor_grid[3][g]->y, (GLfloat) floor_grid[3][g]->z);
 	}
-
 	glEnd();
 	glPopMatrix();
 }
