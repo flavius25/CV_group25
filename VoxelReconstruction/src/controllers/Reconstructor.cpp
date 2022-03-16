@@ -448,111 +448,114 @@ void Reconstructor::update()
 	vector <int> cameras_used = {2,3};
 
  
-	//Looping to check for occlusions, only consider pixels from voxels that are closest to camera
+	// //Looping to check for occlusions, only consider pixels from voxels that are closest to camera
+	// for (int i = 0; i < visible_voxels.size(); i++) {
+	// 	visible_voxels[i]->label = labels[i];
+	// 	int i_label = visible_voxels[i]->label;
+
+	// 	for (int k = 0; k < visible_voxels.size(); k++){
+	// 		visible_voxels[i]->label = labels[i];
+	// 		int k_label = visible_voxels[k]->label;
+
+	// 		if (!(visible_voxels[i] == visible_voxels[k])){
+	// 			if ((visible_voxels[i]->z > (m_height * 1.5 / 5)) && (visible_voxels[k]->z > (m_height * 1.5 / 5))){
+	// 				for (int c = 0; c < cameras_used.size(); c++){
+	// 					const Point i_point = visible_voxels[i]->camera_projection[c];
+	// 					const Point k_point = visible_voxels[k]->camera_projection[c];
+
+	// 					if ((i_point == k_point) && !(i_label == k_label)){
+	// 						Vec3f camWPoint= m_cameras[c]->getCameraLocation();
+	// 						Vec3f i_W_point = Point3f(i_point.x, i_point.y, (float) visible_voxels[i]->z);
+	// 						Vec3f k_W_point = Point3f(k_point.x, k_point.y, (float) visible_voxels[k]->z);
+	// 						float i_Cam_dist = norm(i_W_point,camWPoint, NORM_L2);
+	// 						float k_Cam_dist = norm(k_W_point,camWPoint, NORM_L2);
+	// 						if(i_Cam_dist > k_Cam_dist){
+	// 							continue;
+	// 						}
+	// 					else{
+	// 						cv::Vec3b rgb = img_vec[c].at<cv::Vec3b>(i_point);	//get original RGB values for pixels of interest
+
+	// 						Mat rgb_r(1, 3, CV_64FC1);
+	// 						rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);  //Put into matrix
+	// 						rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+	// 						rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+	// 						switch (i_label) {
+	// 						case 0:
+	// 							samples1.push_back(rgb_r);
+	// 							break;
+	// 						case 1:
+	// 							samples2.push_back(rgb_r);
+	// 							break;
+	// 						case 2:
+	// 							samples3.push_back(rgb_r);
+	// 							break;
+	// 						case 3:
+	// 							samples4.push_back(rgb_r);
+	// 							break;
+	// 							}
+	// 						}	
+	// 					}
+	// 				}	
+	// 			}
+	// 		}
+	// 	}
+
+	// }
+#pragma omp for
+{
 	for (int i = 0; i < visible_voxels.size(); i++) {
 		visible_voxels[i]->label = labels[i];
 		int i_label = visible_voxels[i]->label;
 
-		for (int k = 0; k < visible_voxels.size(); k++){
-			visible_voxels[i]->label = labels[i];
-			int k_label = visible_voxels[k]->label;
+		if (visible_voxels[i]->z > (m_height * 1.5 / 5))
+		{
+			for (int c = 0; c < cameras_used.size(); c++){
+				std::vector <Voxel*> occluding_voxels = visible_voxels[i]->voxels_occluded[c-2];
 
-			if (!(visible_voxels[i] == visible_voxels[k])){
-				if ((visible_voxels[i]->z > (m_height * 1.5 / 5)) && (visible_voxels[k]->z > (m_height * 1.5 / 5))){
-					for (int c = 0; c < cameras_used.size(); c++){
-						const Point i_point = visible_voxels[i]->camera_projection[c];
-						const Point k_point = visible_voxels[k]->camera_projection[c];
-
-						if ((i_point == k_point) && !(i_label == k_label)){
-							Vec3f camWPoint= m_cameras[c]->getCameraLocation();
-							Vec3f i_W_point = Point3f(i_point.x, i_point.y, (float) visible_voxels[i]->z);
-							Vec3f k_W_point = Point3f(k_point.x, k_point.y, (float) visible_voxels[k]->z);
-							float i_Cam_dist = norm(i_W_point,camWPoint, NORM_L2);
-							float k_Cam_dist = norm(k_W_point,camWPoint, NORM_L2);
-							if(i_Cam_dist > k_Cam_dist){
-								continue;
+				bool occluding_voxels_on = false;
+				for (int v = 0; v < occluding_voxels.size(); v++) {
+					while (!occluding_voxels_on){
+   						if (std::find(visible_voxels.begin(), visible_voxels.end(), v) != visible_voxels.end()) {
+							occluding_voxels_on = true;
 							}
-						else{
-							cv::Vec3b rgb = img_vec[c].at<cv::Vec3b>(i_point);	//get original RGB values for pixels of interest
 
-							Mat rgb_r(1, 3, CV_64FC1);
-							rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);  //Put into matrix
-							rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
-							rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+				if (!occluding_voxels_on){		
+				
+					const Point point_forrgb = visible_voxels[i]->camera_projection[c];
 
-							switch (i_label) {
-							case 0:
-								samples1.push_back(rgb_r);
-								break;
-							case 1:
-								samples2.push_back(rgb_r);
-								break;
-							case 2:
-								samples3.push_back(rgb_r);
-								break;
-							case 3:
-								samples4.push_back(rgb_r);
-								break;
-								}
-							}	
+					cv::Vec3b rgb = img_vec[c].at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
+			
+					
+					Mat rgb_r(1, 3, CV_64FC1);
+					rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
+					rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
+					rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
+
+			
+
+					switch (i_label) {
+					case 0:
+						samples1.push_back(rgb_r);
+						break;
+					case 1:
+						samples2.push_back(rgb_r);
+						break;
+					case 2:
+						samples3.push_back(rgb_r);
+						break;
+					case 3:
+						samples4.push_back(rgb_r);
+						break;
+							}
 						}
-					}	
+					}
 				}
 			}
 		}
-
 	}
-// #pragma omp for
-// {
-// 	for (int i = 0; i < visible_voxels.size(); i++) {
-// 		visible_voxels[i]->label = labels[i];
-// 		int i_label = visible_voxels[i]->label;
+}
 
-// 		if (visible_voxels[i]->z > (m_height * 2 / 5))
-// 		{
-// 			for (int c = 0; c < cameras_used.size(); c++){
-// 				auto occluding_voxels = visible_voxels[i]->voxels_occluded[c-2];
-				
-// 				for (int v = 0; v < occluding_voxels.size(); ) {
-//    				 if (std::find(visible_voxels.begin(), visible_voxels.end(), v) == visible_voxels.end()) {
-
-// 						while (any_of(visible_voxels.begin(), visible_voxels.end(), [](){
-
-// 						}))
-       				 	
-// 						const Point point_forrgb = visible_voxels[i]->camera_projection[c];
-
-// 						cv::Vec3b rgb = img_vec[c].at<cv::Vec3b>(point_forrgb);		//get original RGB values for pixels of interest
-				
-						
-// 						Mat rgb_r(1, 3, CV_64FC1);
-// 						rgb_r.at<double>(0, 0) = static_cast<int>(rgb[0]);
-// 						rgb_r.at<double>(0, 1) = static_cast<int>(rgb[1]);
-// 						rgb_r.at<double>(0, 2) = static_cast<int>(rgb[2]);
-
-				
-
-// 						switch (i_label) {
-// 						case 0:
-// 							samples1.push_back(rgb_r);
-// 							break;
-// 						case 1:
-// 							samples2.push_back(rgb_r);
-// 							break;
-// 						case 2:
-// 							samples3.push_back(rgb_r);
-// 							break;
-// 						case 3:
-// 							samples4.push_back(rgb_r);
-// 							break;
-// 							}
-					
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// }
 
 
 	vector <Mat> matVec = {samples1, samples2, samples3, samples4}; //Array of all matrices to be combined into one
