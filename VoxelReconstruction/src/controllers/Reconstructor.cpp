@@ -49,6 +49,7 @@ Reconstructor::Reconstructor(
 	m_voxels_amount = (edge / m_step) * (edge / m_step) * (m_height / m_step);
 
 	initialize();
+	offlineOcclusionPrep();
 }
 
 /**
@@ -72,10 +73,10 @@ Reconstructor::~Reconstructor()
 void Reconstructor::initialize()
 {
 	// Cube dimensions from [(-m_height, m_height), (-m_height, m_height), (0, m_height)]
-	const int xL = -m_height - 1000;
-	const int xR = m_height - 1000;
-	const int yL = -m_height + 500;
-	const int yR = m_height + 500;
+	const int xL = -m_height; // - 1000
+	const int xR = m_height; //  - 1000
+	const int yL = -m_height; //  + 500
+	const int yR = m_height; //  + 500
 	const int zL = 0;
 	const int zR = m_height;
 	const int plane_y = (yR - yL) / m_step;
@@ -152,8 +153,62 @@ void Reconstructor::initialize()
 	}
 
 	cout << "done!" << endl;
+
 }
 
+void Reconstructor::offlineOcclusionPrep()
+{
+#pragma omp parallel
+{
+	vector <int> cameras_used2 = { 2,3 };
+	std::vector<Voxel*> voxels_distance;
+
+#pragma omp for{
+		for (int i = 0; i < m_voxels.size(); i++) {
+			/*visible_voxels[i]->label = labels[i];
+			int i_label = visible_voxels[i]->label;*/
+
+			for (int k = 0; k < m_voxels.size(); k++) {
+				/*visible_voxels[k]->label = labels[k];
+				int k_label = visible_voxels[k]->label;*/
+
+				if (!(m_voxels[i] == m_voxels[k])) {
+
+					if ((m_voxels[i]->z > (m_height * 2 / 5)) && (m_voxels[k]->z > (m_height * 2 / 5))) {
+
+						for (int c = 0; c < cameras_used2.size(); c++) {
+
+							const Point i_point = m_voxels[i]->camera_projection[c];
+							const Point k_point = m_voxels[k]->camera_projection[c];
+
+							//int radius_region_of_interest = 5;			//check if the k_point is in the region (radius of circle around i_point). Currently set to 5
+							//((k_point.x - i_point.x) * (k_point.x - i_point.x) + (k_point.y - i_point.y) * (k_point.y - i_point.y) <= radius_region_of_interest * radius_region_of_interest) 
+
+
+							if (i_point == k_point){ 
+								Vec3f camWPoint = m_cameras[c]->getCameraLocation();
+								Vec3f i_W_point = Point3f(i_point.x, i_point.y, (float)m_voxels[i]->z);
+								Vec3f k_W_point = Point3f(k_point.x, k_point.y, (float)m_voxels[k]->z);
+								float i_Cam_dist = norm(i_W_point, camWPoint, NORM_L2);
+								float k_Cam_dist = norm(k_W_point, camWPoint, NORM_L2);
+
+								if (i_Cam_dist > k_Cam_dist) {
+									m_voxels[i]->voxels_occluded.push_back(m_voxels[k]);
+								}
+							
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+		}
+	}	
+	
+}
 
 /**
  * Count the amount of camera's each voxel in the space appears on,
@@ -207,7 +262,6 @@ void Reconstructor::update()
 		}
 
 	}
-
 
 
 	// *O	
@@ -393,7 +447,7 @@ void Reconstructor::update()
 
 	vector <int> cameras_used = {2,3};
 
-#pragma omp for 
+ 
 	//Looping to check for occlusions, only consider pixels from voxels that are closest to camera
 	// for (int i = 0; i < visible_voxels.size(); i++) {
 	// 	visible_voxels[i]->label = labels[i];
@@ -448,6 +502,8 @@ void Reconstructor::update()
 	// 	}
 
 	//}
+#pragma omp for
+{
 	for (int i = 0; i < visible_voxels.size(); i++) {
 		visible_voxels[i]->label = labels[i];
 		int i_label = visible_voxels[i]->label;
@@ -455,7 +511,7 @@ void Reconstructor::update()
 		if (visible_voxels[i]->z > (m_height * 2 / 5))
 		{
 			for (int c = 0; c < cameras_used.size(); c++){
-				std::vector <Voxels*> occluding_voxels = visible_voxels[i]->occluding_voxel_name[c-2];
+				std::vector <Voxel*> occluding_voxels = visible_voxels[i]->voxels_occluded[c-2];
 				
 				for (auto v: occluding_voxels) {
    				 if (std::find(visible_voxels.begin(), visible_voxels.end(), v) == visible_voxels.end()) {
@@ -496,6 +552,7 @@ void Reconstructor::update()
 			}
 		}
 	}
+}
 
 
 	vector <Mat> matVec = {samples1, samples2, samples3, samples4}; //Array of all matrices to be combined into one
@@ -529,7 +586,7 @@ void Reconstructor::update()
 	for (int i = 0; i < final_labels.size(); i++){
 		Vec2f center = centers.row(i);
 		int color_index = final_labels[i];
-		center_labels[i].push_back(center);
+		center_labels[color_index].push_back(center);
 	}
 
 
@@ -539,12 +596,6 @@ void Reconstructor::update()
 		int color_index = final_labels[lb];
 		visible_voxels[i]->color = color_tab[color_index];
 	}
-
-
-	//cout << centers.at<float>(3,1) << "\n";
-	//for (size_t l = 0; l < labels.size(); l++) {
-	//	cout << labels[l];
-	//}
 	
 }
 }

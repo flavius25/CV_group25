@@ -27,9 +27,10 @@ public:
 	struct Voxel
 	{
 		int x, y, z;                               // Coordinates
-		cv::Vec3f color;                          // Color
+		cv::Vec3f color;                           // Color
 		std::vector<cv::Point> camera_projection;  // Projection location for camera[c]'s FoV (2D)
 		std::vector<int> valid_camera_projection;  // Flag if camera projection is in camera[c]'s FoV
+		std::vector<Voxel*> voxels_occluded;       // Stores the voxels that project to same point and occludes the voxel
 		int label;
 	};
 
@@ -62,9 +63,10 @@ private:
 	std::vector<Voxel*> m_visible_voxels;   // Pointer vector to all visible voxels
 	std::vector<Voxel*> m_visible_voxels_frame;   // Pointer vector to all visible voxels from specified frame
 
-	std::vector <vector <Vec2f>> center_labels; //Vector used to track which centers belong to which person over time
+	std::vector <vector<Vec2f>> center_labels; //Vector used to track which centers belong to which person over time
 
 	void initialize();
+	void offlineOcclusionPrep();
 
 public:
 	Reconstructor(

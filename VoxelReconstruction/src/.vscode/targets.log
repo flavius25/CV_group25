@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Mar 15 16:12:31 2022
+# Make data base, printed on Wed Mar 16 10:50:21 2022
 
 # Variables
 
@@ -163,7 +163,7 @@ VSCODE_CODE_CACHE_PATH = /home/annadollbo/.config/Code/CachedData/c722ca6c7eed3d
 # environment
 LOGNAME = annadollbo
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 SNAP_LIBRARY_PATH = /var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void
 # environment
@@ -263,7 +263,7 @@ LC_ALL = C
 # environment
 GJS_DEBUG_TOPICS = JS ERROR;JS LOG
 # makefile (from 'Makefile', line 6)
-LIBS = -lglut `pkg-config --cflags --libs opencv4 gl glu`      
+LIBS = -lglut `pkg-config --cflags --libs opencv4 gl glu fopenmp`      
 # automatic
 ^F = $(notdir $^)
 # default
@@ -280,7 +280,6 @@ WINDOWPATH = 2
 GJS_DEBUG_OUTPUT = stderr
 # default
 .RECIPEPREFIX := 
- 
 # environment
 LC_ADDRESS = nl_NL.UTF-8
 # environment
@@ -336,7 +335,7 @@ all:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-03-11 19:15:32.226143698
+#  Last modified 2022-03-16 10:50:03.247914722
 #  File has been updated.
 #  Successfully updated.
 
@@ -379,6 +378,7 @@ controllers/Glut.cpp:
 # Not a target:
 controllers/Reconstructor.cpp:
 #  Implicit rule search has not been done.
+ 
 #  Modification time never checked.
 #  File has not been updated.
 
@@ -415,6 +415,6 @@ output: VoxelReconstruction.cpp main.cpp utilities/General.cpp controllers/Recon
 # strcache performance: lookups = 61 / hit rate = 22%
 # hash-table stats:
 # Load=47/8192=1%, Rehash=0, Collisions=3/61=5%
-# Finished Make data base on Tue Mar 15 16:12:31 2022
+# Finished Make data base on Wed Mar 16 10:50:21 2022
 
  

@@ -734,7 +734,9 @@ void Glut::drawTracking()
 	//glTranslatef(0, 0, 0);
 	glLineWidth(1.5f);
 	glPushMatrix();
-	glBegin(GL_LINES);
+	//glClear( GL_COLOR_BUFFER_BIT);
+	glBegin(GL_POINTS);
+	//glPointSize(10.0f);
 
 	std::vector <cv::Vec3f> color_tab = {
 		{0,0,255},  //RGB
@@ -743,12 +745,12 @@ void Glut::drawTracking()
 		{255,0,255}
     };
 	
-	vector<vector <Vec2f>> colorCenters = m_Glut->getScene3d().getReconstructor().getColorCenters();
+	std::vector<std::vector <cv::Vec2f>> colorCenters = m_Glut->getScene3d().getReconstructor().getColorCenters();
 
 	for (int i = 0; i < colorCenters.size();i++){
 		glColor3f(color_tab[i][2], color_tab[i][1], color_tab[i][0]);
 		for (int k = 0; k < colorCenters[i].size(); k++){
-			glVertex3f((GLfloat) colorCenters[i][i][0], (GLfloat) colorCenters[i][i][1], (GLfloat) 0);
+			glVertex2f((GLfloat) colorCenters[i][k][0], (GLfloat) colorCenters[i][k][1]);
 		}	
 	}
 
