@@ -1,23 +1,3 @@
-Required libraries (Linux):
-===========================
-
-opencv_core
-opencv_highgui
-opencv_imgproc
-opencv_calib3d
-
-GL
-GLU
-glut
-
-Required libraries (Windows):
-=============================
-
-opencv_world
-
-GL
-GLU
-
 =========================================================================================
 Information about the files:
 - Most of our implementations have been made in Reconstructor.cpp, as well as in Glut.cpp. 
@@ -54,4 +34,23 @@ For Glut.cpp:
 
 ________________________________________________________________________________________________________________________________________________
 
+Required libraries (Linux):
+===========================
+
+opencv_core
+opencv_highgui
+opencv_imgproc
+opencv_calib3d
+
+GL
+GLU
+glut
+
+Required libraries (Windows):
+=============================
+
+opencv_world
+
+GL
+GLU
        
