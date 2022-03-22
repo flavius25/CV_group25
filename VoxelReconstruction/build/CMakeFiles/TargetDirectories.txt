@@ -1,3 +1,0 @@
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles/rebuild_cache.dir
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles/edit_cache.dir
-/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/build/CMakeFiles/VoxelRecontruction.dir

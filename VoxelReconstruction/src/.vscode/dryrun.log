@@ -1,5 +1,0 @@
-make --dry-run --keep-going --print-directory
-make: Entering directory '/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src'
-"g++" *.cpp utilities/*.cpp controllers/*.cpp  -o output -lglut `pkg-config --cflags --libs opencv4 gl glu`      
-make: Leaving directory '/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/VoxelReconstruction/src'
- 
