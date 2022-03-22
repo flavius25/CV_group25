@@ -67,7 +67,6 @@ def display_image(position):
 display_image(7)
 
 # split training data into training and validation
-validation = {}
 train_images, validation_images, train_labels, validation_labels = train_test_split(train_images, train_labels, test_size=0.2, random_state=0)
 
 # explore the data
@@ -97,9 +96,9 @@ model = tf.keras.Sequential([
 
 model.summary()
 
-model.compile(loss=tf.keras.losses.categorical_crossentropy, optimizer=tf.keras.optimizers.Adam(), metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-EPOCHS = 10
+EPOCHS = 14
 BATCH_SIZE = 128
 
 #add channel = 1 for greyscale
@@ -111,19 +110,26 @@ validation_images.shape
 X_train, y_train = train_images, to_categorical(train_labels)
 X_validation, y_validation = validation_images, to_categorical(validation_labels)
 
-train_generator = ImageDataGenerator().flow(X_train, y_train, batch_size=BATCH_SIZE)
-validation_generator = ImageDataGenerator().flow(X_validation, y_validation, batch_size=BATCH_SIZE)
-
 print('# of training images:', train_images.shape[0])
 print('# of validation images:', validation_images.shape[0])
 
-steps_per_epoch = X_train.shape[0]//BATCH_SIZE
-validation_steps = X_validation.shape[0]//BATCH_SIZE
+history=model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_validation, y_validation))
 
-tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
-model.fit_generator(train_generator, steps_per_epoch=steps_per_epoch, epochs=EPOCHS, 
-                    validation_data=validation_generator, validation_steps=validation_steps, 
-                    shuffle=True, callbacks=[tensorboard])
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.show()
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.show()
 
 score = model.evaluate(test_images, to_categorical(test_labels))
 print('Test loss:', score[0])
