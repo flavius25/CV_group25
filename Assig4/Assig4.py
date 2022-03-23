@@ -69,7 +69,7 @@ print(f"Updated Image Shape: {train_images[0].shape}.")
 
 #display_image(22)
 
-#Baseline Model architecture
+#Model architecture
 bl_model = tf.keras.Sequential([
     tf.keras.layers.Conv2D(filters=6, kernel_size=(3, 3), activation='relu', input_shape=(32,32,1), kernel_regularizer=tf.keras.regularizers.l2(l=0.01)),
     tf.keras.layers.AveragePooling2D(),
@@ -103,34 +103,36 @@ print('# of training images:', train_images.shape[0])
 print('# of validation images:', validation_images.shape[0])
 
 #Fitting the model, performing training
-history=bl_model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_validation, y_validation))
+bl_history=bl_model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_validation, y_validation))
 
 #Plotting the accuracy
-plt.plot(history.history['accuracy'])
-plt.plot(history.history['val_accuracy'])
-plt.title('Baseline model accuracy')
+plt.plot(bl_history.history['accuracy'])
+plt.plot(bl_history.history['val_accuracy'])
+plt.title('model accuracy')
 plt.ylabel('accuracy')
 plt.xlabel('epoch')
 plt.legend(['train', 'val'], loc='upper left')
+plt.ylim([0.65, 1])
 plt.show()
 
 #Plotting the loss
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
-plt.title('Baseline model loss')
+plt.plot(bl_history.history['loss'])
+plt.plot(bl_history.history['val_loss'])
+plt.title('model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'val'], loc='upper left')
+plt.ylim([0, 1])
 plt.show()
 
 #Getting the score from the testing
-score = bl_model.evaluate(test_images, to_categorical(test_labels))
-print('Test loss:', score[0])
-print('Test accuracy:', score[1])
+bl_score = bl_model.evaluate(test_images, to_categorical(test_labels))
+print('Baseline model test loss:', bl_score[0])
+print('Baseline model test accuracy:', bl_score[1])
 
-bl_model.save("baseline_model")
+bl_model.save("bl_model")
 
-#Model architecture
+#Model2 DropOut model architecture
 dropout_model = tf.keras.Sequential([
     tf.keras.layers.Conv2D(filters=6, kernel_size=(3, 3), activation='relu', input_shape=(32,32,1), kernel_regularizer=tf.keras.regularizers.l2(l=0.01)),
     tf.keras.layers.AveragePooling2D(),
@@ -144,3 +146,170 @@ dropout_model = tf.keras.Sequential([
     tf.keras.layers.Dropout(0.1),
     tf.keras.layers.Dense(10, activation='softmax')
 ])
+
+dropout_model.summary()
+
+dropout_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+dropout_history=dropout_model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_validation, y_validation))
+
+#Plotting the accuracy
+plt.plot(dropout_history.history['accuracy'])
+plt.plot(dropout_history.history['val_accuracy'])
+plt.title('Drop-out model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.ylim([0.65, 1])
+plt.show()
+
+#Plotting the loss
+plt.plot(dropout_history.history['loss'])
+plt.plot(dropout_history.history['val_loss'])
+plt.title('Drop-out model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.ylim([0, 1])
+plt.show()
+
+#Getting the score from the testing
+dropout_score = dropout_model.evaluate(test_images, to_categorical(test_labels))
+print('Drop-out model test loss:', dropout_score[0])
+print('Drop-out model accuracy:', dropout_score[1])
+
+dropout_model.save("dropout_model")
+
+#Model3 MaxPooling model architecture
+maxpool_model = tf.keras.Sequential([
+    tf.keras.layers.Conv2D(filters=6, kernel_size=(3, 3), activation='relu', input_shape=(32,32,1), kernel_regularizer=tf.keras.regularizers.l2(l=0.01)),
+    tf.keras.layers.MaxPooling2D(),
+    tf.keras.layers.Conv2D(filters=16, kernel_size=(3, 3), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=0.01)),
+    tf.keras.layers.MaxPooling2D(),                      
+    tf.keras.layers.Flatten(), #or Flatten(input_shape=(28, 28))
+    tf.keras.layers.Dense(120, activation='relu'),
+    tf.keras.layers.Dense(84, activation='relu'),
+    tf.keras.layers.Dense(10, activation='softmax')
+])
+
+maxpool_model.summary()
+
+maxpool_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+maxpool_history=maxpool_model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_validation, y_validation))
+
+#Plotting the accuracy
+plt.plot(maxpool_history.history['accuracy'])
+plt.plot(maxpool_history.history['val_accuracy'])
+plt.title('Maxpool model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.ylim([0.65, 1])
+plt.show()
+
+#Plotting the loss
+plt.plot(maxpool_history.history['loss'])
+plt.plot(maxpool_history.history['val_loss'])
+plt.title('MaxPool model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.ylim([0, 1])
+plt.show()
+
+#Getting the score from the testing
+maxpool_score = maxpool_model.evaluate(test_images, to_categorical(test_labels))
+print('Maxpool model test loss:', maxpool_score[0])
+print('Maxpool model test accuracy:', maxpool_score[1])
+
+maxpool_model.save("maxpool_model")
+
+#Model4 More filters model architecture
+filter_model = tf.keras.Sequential([
+    tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu', input_shape=(32,32,1), kernel_regularizer=tf.keras.regularizers.l2(l=0.01)),
+    tf.keras.layers.AveragePooling2D(),
+    tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=0.01)),
+    tf.keras.layers.AveragePooling2D(),                      
+    tf.keras.layers.Flatten(), #or Flatten(input_shape=(28, 28))
+    tf.keras.layers.Dense(120, activation='relu'),
+    tf.keras.layers.Dense(84, activation='relu'),
+    tf.keras.layers.Dense(10, activation='softmax')
+])
+
+filter_model.summary()
+
+filter_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+filter_history=filter_model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_validation, y_validation))
+
+#Plotting the accuracy
+plt.plot(filter_history.history['accuracy'])
+plt.plot(filter_history.history['val_accuracy'])
+plt.title('Filter model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.ylim([0.65, 1])
+plt.show()
+
+#Plotting the loss
+plt.plot(filter_history.history['loss'])
+plt.plot(filter_history.history['val_loss'])
+plt.title('Filter model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.ylim([0, 1])
+plt.show()
+
+#Getting the score from the testing
+filter_score = filter_model.evaluate(test_images, to_categorical(test_labels))
+print('Filter model test loss:', filter_score[0])
+print('Filter model test accuracy:', filter_score[1])
+
+filter_model.save("filter_model")
+
+#Model5 1 more convolutional layer model architecture
+conv_model = tf.keras.Sequential([
+    tf.keras.layers.Conv2D(filters=6, kernel_size=(3, 3), activation='relu', input_shape=(32,32,1), kernel_regularizer=tf.keras.regularizers.l2(l=0.01)),
+    tf.keras.layers.AveragePooling2D(),
+    tf.keras.layers.Conv2D(filters=16, kernel_size=(3, 3), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=0.01)),
+    tf.keras.layers.AveragePooling2D(),   
+    tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=0.01)),
+    tf.keras.layers.AveragePooling2D(),                   
+    tf.keras.layers.Flatten(), #or Flatten(input_shape=(28, 28))
+    tf.keras.layers.Dense(120, activation='relu'),
+    tf.keras.layers.Dense(84, activation='relu'),
+    tf.keras.layers.Dense(10, activation='softmax')
+])
+
+conv_model.summary()
+
+conv_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+conv_history=conv_model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_validation, y_validation))
+
+#Plotting the accuracy
+plt.plot(conv_history.history['accuracy'])
+plt.plot(conv_history.history['val_accuracy'])
+plt.title('Extra convolution model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.ylim([0.65, 1])
+plt.show()
+
+#Plotting the loss
+plt.plot(conv_history.history['loss'])
+plt.plot(conv_history.history['val_loss'])
+plt.title('Extra convolution model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.ylim([0, 1])
+plt.show()
+
+#Getting the score from the testing
+conv_score = conv_model.evaluate(test_images, to_categorical(test_labels))
+print('Extra convolution model test loss:', conv_score[0])
+print('Extra convolution model test accuracy:', conv_score[1])
+
+conv_model.save("conv_model")
