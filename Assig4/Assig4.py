@@ -31,11 +31,13 @@ train_images, validation_images, train_labels, validation_labels = train_test_sp
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
+train_images[0].shape
+
 #Checking label distribution, uniform distribution 
 train, test = fashion_mnist.load_data()
-ds = tf.data.Dataset.from_tensor_slices(train)
+data = tf.data.Dataset.from_tensor_slices(train)
 
-vals = np.fromiter(ds.map(lambda x, y: y), float)
+vals = np.fromiter(data.map(lambda x, y: y), float)
 
 plt.hist(vals)
 plt.xticks(range(10))
@@ -79,8 +81,6 @@ validation_images = np.pad(validation_images, ((0,0),(2,2),(2,2)), 'constant')
 test_images       = np.pad(test_images, ((0,0),(2,2),(2,2)), 'constant')
 
 print(f"Updated Image Shape: {train_images[0].shape}.")
-
-#display_image(22)
 
 #Baseline model architecture
 bl_model = tf.keras.Sequential([
@@ -342,7 +342,8 @@ lr_model = tf.keras.Sequential([
 
 lr_model.summary()
 
-#Schedule function to reduce the learning rate to half every 5 epochs
+"""Schedule function to reduce the learning rate to half every 5 epochs"""
+
 def scheduler(epoch, lr):
   if epoch > 0 and (epoch % 5 == 0):
     return lr * 0.5
@@ -352,8 +353,8 @@ def scheduler(epoch, lr):
 #Create callback for adapting learning rate
 callback = tf.keras.callbacks.LearningRateScheduler(scheduler, verbose = 1)
 
-#Set initial learningrate to 0.1, use SGD here instead of Adam as Adam has internal learning rate management that is not compatible with most learning rate schedules
-opt = tf.keras.optimizers.SGD(learning_rate=0.1)
+"""Set initial learningrate to 0.1, use SGD here instead of Adam as Adam has internal learning rate management that is not compatible with most learning rate schedules"""
+opt = tf.keras.optimizers.SGD(learning_rate=0.1) #Can also try with 0.01
 lr_model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 lr_history=lr_model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_validation, y_validation), callbacks=[callback])
 
@@ -401,3 +402,43 @@ sns.heatmap(cmn, annot=True, fmt='.2f', xticklabels=class_names, yticklabels=cla
 plt.ylabel('Actual')
 plt.xlabel('Predicted')
 plt.show(block=False)
+
+#Take arbitrary image and add empty dimension to fit input
+img = train_images[0][None,:,:,:]
+
+img.shape
+
+"""Building visualisation for output layers"""
+
+#Get the name of the layers
+layer_names = [layer.name for layer in lr_model.layers]
+
+#print(lr_model.layers) #Checking the different layers
+layer_outputs = [layer.output for layer in lr_model.layers] #Create list of the outputs for all layers
+visualisation_model = tf.keras.models.Model(inputs=lr_model.input, outputs=layer_outputs) #Creating a model for visualisation with the same input as analysed model and output all the intermediate layers of model
+
+
+feature_maps = visualisation_model.predict(img) #pass image into the visualisation model to get the feature maps
+
+for layer_name, feature_map in zip(layer_names, feature_maps):
+  print(f"The shape of the {layer_name} is =======>> {feature_map.shape}") #Print shape of each feature map for each output layer
+
+  for layer_name, feature_map in zip(layer_names, feature_maps):   
+    if len(feature_map.shape) == 4: #this makes sure we only get output from convolutional layers
+      feature_dim = feature_map.shape[-1]  #Getting the number of feature dimensions for a featuremap of each layer
+      size = feature_map.shape[1] 
+      image_grid = np.zeros((size,size, feature_dim))  
+      for i in range(feature_dim):   #iterate over a feature map of a layer and separate all feature images. 
+        img = feature_map[0, :, :, i]
+        img -= img.mean()
+        img /= img.std ()
+        img *=  64
+        img += 128
+        img = np.clip(img, 0, 255).astype('uint8')
+        image_grid[:, i * size : (i + 1) * size] = img
+
+      scale = 20. / feature_dim
+      plt.figure( figsize=(scale * feature_dim, scale) )
+      plt.title ( layer_name )
+      plt.grid  ( False )
+      plt.imshow(image_grid, aspect='auto')
