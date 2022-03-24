@@ -16,6 +16,9 @@ from keras.utils.np_utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import TensorBoard, LearningRateScheduler
 from time import time
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import seaborn as sns
+from matplotlib.pyplot import figure
 
 # Loading the data, splitting up into test and trainign set 
 (train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
@@ -369,3 +372,21 @@ print(f"Decaying lr model training loss: {lr_history.history['loss'][-1]} and va
 
 #save learning rate model
 lr_model.save_weights("lr_model")
+
+#Make confusion matrix with scikitlearn that shows number of images classified correctly and incorrectly
+y_pred = lr_model.predict(validation_images)
+y_true = validation_labels             
+y_pred_class = np.argmax(y_pred, axis=1)
+
+fig, ax = plt.subplots(figsize=(10, 10))
+ConfusionMatrixDisplay.from_predictions(validation_labels, y_pred_class, cmap="BuPu", ax=ax)  #BuPu, pink_r, PuBu, binary, Greens, CMRmap_r
+plt.show()
+
+#Normalised heatmap using seaborn that shows percentage of correctly classified (and missclassified) labels
+cm = confusion_matrix(validation_labels, y_pred_class)
+cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+fig, ax = plt.subplots(figsize=(14,12))
+sns.heatmap(cmn, annot=True, fmt='.2f', xticklabels=class_names, yticklabels=class_names, cmap="Reds") #YlGnBu, Blues, CMRmap_r, pink_r, binary, BuPu, PuBu
+plt.ylabel('Actual')
+plt.xlabel('Predicted')
+plt.show(block=False)
