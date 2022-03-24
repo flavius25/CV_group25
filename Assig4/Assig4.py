@@ -31,6 +31,17 @@ train_images, validation_images, train_labels, validation_labels = train_test_sp
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
+#Checking label distribution, uniform distribution 
+train, test = fashion_mnist.load_data()
+ds = tf.data.Dataset.from_tensor_slices(train)
+
+vals = np.fromiter(ds.map(lambda x, y: y), float)
+
+plt.hist(vals)
+plt.xticks(range(10))
+plt.title('Label Frequency')
+plt.show()
+
 #Plotting a subset of data with labels
 plt.figure(figsize=(10,10))
 for i in range(25):
@@ -385,8 +396,8 @@ plt.show()
 #Normalised heatmap using seaborn that shows percentage of correctly classified (and missclassified) labels
 cm = confusion_matrix(validation_labels, y_pred_class)
 cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-fig, ax = plt.subplots(figsize=(14,12))
-sns.heatmap(cmn, annot=True, fmt='.2f', xticklabels=class_names, yticklabels=class_names, cmap="Reds") #YlGnBu, Blues, CMRmap_r, pink_r, binary, BuPu, PuBu
+fig, ax = plt.subplots(figsize=(12,10))
+sns.heatmap(cmn, annot=True, fmt='.2f', xticklabels=class_names, yticklabels=class_names, cmap="YlGnBu") #YlGnBu, Blues, CMRmap_r, pink_r, binary, BuPu, PuBu, Reds
 plt.ylabel('Actual')
 plt.xlabel('Predicted')
 plt.show(block=False)
