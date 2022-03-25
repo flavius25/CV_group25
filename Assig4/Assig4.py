@@ -141,7 +141,7 @@ print(f"Baseline model training accuracy: {bl_history.history['accuracy'][-1]} a
 print(f"Baseline model training loss: {bl_history.history['loss'][-1]} and validation loss: {bl_history.history['val_loss'][-1]}")
 
 #Save weights of model
-bl_model.save_weights("bl_model")
+bl_model.save_weights("bl_model.h5")
 
 #Model2 DropOut model architecture
 dropout_model = tf.keras.Sequential([
@@ -188,7 +188,7 @@ print(f"Dropout model training accuracy: {dropout_history.history['accuracy'][-1
 print(f"Dropout model training loss: {dropout_history.history['loss'][-1]} and validation loss: {dropout_history.history['val_loss'][-1]}")
 
 #Saving weights of dropout model
-dropout_model.save_weights("dropout_model")
+dropout_model.save_weights("dropout_model.h5")
 
 #Model3 MaxPooling model architecture
 maxpool_model = tf.keras.Sequential([
@@ -233,7 +233,7 @@ print(f"Maxpool model training accuracy: {maxpool_history.history['accuracy'][-1
 print(f"Maxpool model training loss: {maxpool_history.history['loss'][-1]} and validation loss: {maxpool_history.history['val_loss'][-1]}")
 
 #Save weights of maxpool model
-maxpool_model.save_weights("maxpool_model")
+maxpool_model.save_weights("maxpool_model.h5")
 
 #Model4 More filters model architecture
 filter_model = tf.keras.Sequential([
@@ -278,7 +278,7 @@ print(f"Filter model training accuracy: {filter_history.history['accuracy'][-1]}
 print(f"Filter model training loss: {filter_history.history['loss'][-1]} and validation loss: {filter_history.history['val_loss'][-1]}")
 
 #Saving weights of filter model
-filter_model.save_weights("filter_model")
+filter_model.save_weights("filter_model.h5")
 
 #Model5 1 more convolutional layer model architecture
 conv_model = tf.keras.Sequential([
@@ -325,7 +325,7 @@ print(f"Extra convolution model training accuracy: {conv_history.history['accura
 print(f"Extra convolution model training loss: {conv_history.history['loss'][-1]} and validation loss: {conv_history.history['val_loss'][-1]}")
 
 #Saving weights of conv model
-conv_model.save_weights("conv_model")
+conv_model.save_weights("conv_model.h5")
 
 #Learningrate decay model architecture
 lr_model = tf.keras.Sequential([
@@ -383,7 +383,7 @@ print(f"Decaying lr model training accuracy: {lr_history.history['accuracy'][-1]
 print(f"Decaying lr model training loss: {lr_history.history['loss'][-1]} and validation loss: {lr_history.history['val_loss'][-1]}")
 
 #save learning rate model
-lr_model.save_weights("lr_model")
+lr_model.save_weights("lr_model.h5")
 
 #Make confusion matrix with scikitlearn that shows number of images classified correctly and incorrectly
 y_pred = lr_model.predict(validation_images)
@@ -403,12 +403,13 @@ plt.ylabel('Actual')
 plt.xlabel('Predicted')
 plt.show(block=False)
 
-#Take arbitrary image and add empty dimension to fit input
-img = train_images[0][None,:,:,:]
-
-img.shape
+# Commented out IPython magic to ensure Python compatibility.
+# %matplotlib inline
 
 """Building visualisation for output layers"""
+
+#Take arbitrary image and add  empty dimension so that it can be predicted 
+img = train_images[9][None,:,:,:]
 
 #Get the name of the layers
 layer_names = [layer.name for layer in lr_model.layers]
@@ -421,24 +422,28 @@ visualisation_model = tf.keras.models.Model(inputs=lr_model.input, outputs=layer
 feature_maps = visualisation_model.predict(img) #pass image into the visualisation model to get the feature maps
 
 for layer_name, feature_map in zip(layer_names, feature_maps):
-  print(f"The shape of the {layer_name} is =======>> {feature_map.shape}") #Print shape of each feature map for each output layer
+  print(f"The shape of the {layer_name} is : {feature_map.shape}") #Print shape of each feature map for each output layer
 
-  for layer_name, feature_map in zip(layer_names, feature_maps):   
-    if len(feature_map.shape) == 4: #this makes sure we only get output from convolutional layers
-      feature_dim = feature_map.shape[-1]  #Getting the number of feature dimensions for a featuremap of each layer
-      size = feature_map.shape[1] 
-      image_grid = np.zeros((size,size, feature_dim))  
-      for i in range(feature_dim):   #iterate over a feature map of a layer and separate all feature images. 
-        img = feature_map[0, :, :, i]
-        img -= img.mean()
-        img /= img.std ()
-        img *=  64
-        img += 128
-        img = np.clip(img, 0, 255).astype('uint8')
-        image_grid[:, i * size : (i + 1) * size] = img
+ 
+  if len(feature_map.shape) == 4: #this makes sure we only get output from convolutional layers
+    feature_dim = feature_map.shape[-1]  #Getting the number of feature dimensions for a featuremap of each layer
+    size = feature_map.shape[1] 
+    image_grid = np.zeros((size,size * feature_dim))  
+    #img_array = []
+    for i in range(feature_dim):   #iterate over a feature map of a layer and separate all feature images (filters). 
+      img = feature_map[0, :, :, i]
+      #since image is not very well defined here we need to standardise and normalise it so that we can understand it better
+      img -= img.mean()
+      img /= img.std ()
+      img *=  64
+      img += 128
+      img = np.clip(img, 0, 255).astype('uint8')
+      #Put image one by one into the image grid
+      image_grid[:, i * size : (i + 1) * size] = img
 
-      scale = 20. / feature_dim
-      plt.figure( figsize=(scale * feature_dim, scale) )
-      plt.title ( layer_name )
-      plt.grid  ( False )
-      plt.imshow(image_grid, aspect='auto')
+    #Scale and plot image
+    scale = 20. / feature_dim
+    plt.figure(figsize=(scale * feature_dim, scale))
+    plt.title(layer_name)
+    plt.grid(False)
+    plt.imshow(image_grid, aspect='auto')
