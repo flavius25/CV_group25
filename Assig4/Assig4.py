@@ -354,7 +354,7 @@ def scheduler(epoch, lr):
 callback = tf.keras.callbacks.LearningRateScheduler(scheduler, verbose = 1)
 
 """Set initial learningrate to 0.1, use SGD here instead of Adam as Adam has internal learning rate management that is not compatible with most learning rate schedules"""
-opt = tf.keras.optimizers.SGD(learning_rate=0.1) #Can also try with 0.01
+opt = tf.keras.optimizers.SGD(learning_rate=0.01) #Can also try with 0.01
 lr_model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 lr_history=lr_model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_validation, y_validation), callbacks=[callback])
 
@@ -383,24 +383,25 @@ print(f"Decaying lr model training accuracy: {lr_history.history['accuracy'][-1]
 print(f"Decaying lr model training loss: {lr_history.history['loss'][-1]} and validation loss: {lr_history.history['val_loss'][-1]}")
 
 #save learning rate model
-lr_model.save_weights("lr_model.h5")
+lr_model.save_weights("lr_model001.h5")
 
 #Make confusion matrix with scikitlearn that shows number of images classified correctly and incorrectly
-y_pred = lr_model.predict(validation_images)
-y_true = validation_labels             
+y_pred = bl_model.predict(test_images)
+y_true = test_labels             
 y_pred_class = np.argmax(y_pred, axis=1)
 
 fig, ax = plt.subplots(figsize=(10, 10))
-ConfusionMatrixDisplay.from_predictions(validation_labels, y_pred_class, cmap="BuPu", ax=ax)  #BuPu, pink_r, PuBu, binary, Greens, CMRmap_r
+ConfusionMatrixDisplay.from_predictions(test_labels, y_pred_class, cmap="BuPu", ax=ax)  #BuPu, pink_r, PuBu, binary, Greens, CMRmap_r
 plt.show()
 
 #Normalised heatmap using seaborn that shows percentage of correctly classified (and missclassified) labels
-cm = confusion_matrix(validation_labels, y_pred_class)
+cm = confusion_matrix(test_labels, y_pred_class)
 cmn = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 fig, ax = plt.subplots(figsize=(12,10))
 sns.heatmap(cmn, annot=True, fmt='.2f', xticklabels=class_names, yticklabels=class_names, cmap="YlGnBu") #YlGnBu, Blues, CMRmap_r, pink_r, binary, BuPu, PuBu, Reds
 plt.ylabel('Actual')
 plt.xlabel('Predicted')
+plt.title("Confusion Matrix Baseline Model")
 plt.show(block=False)
 
 # Commented out IPython magic to ensure Python compatibility.
@@ -411,12 +412,15 @@ plt.show(block=False)
 #Take arbitrary image and add  empty dimension so that it can be predicted 
 img = train_images[9][None,:,:,:]
 
+#Display Image (x=32, y=32 since we have padding)
+plt.imshow(img.reshape((32,32)), cmap=plt.cm.binary)
+
 #Get the name of the layers
-layer_names = [layer.name for layer in lr_model.layers]
+layer_names = [layer.name for layer in bl_model.layers]
 
 #print(lr_model.layers) #Checking the different layers
-layer_outputs = [layer.output for layer in lr_model.layers] #Create list of the outputs for all layers
-visualisation_model = tf.keras.models.Model(inputs=lr_model.input, outputs=layer_outputs) #Creating a model for visualisation with the same input as analysed model and output all the intermediate layers of model
+layer_outputs = [layer.output for layer in bl_model.layers] #Create list of the outputs for all layers
+visualisation_model = tf.keras.models.Model(inputs=bl_model.input, outputs=layer_outputs) #Creating a model for visualisation with the same input as analysed model and output all the intermediate layers of model
 
 
 feature_maps = visualisation_model.predict(img) #pass image into the visualisation model to get the feature maps
@@ -447,3 +451,27 @@ for layer_name, feature_map in zip(layer_names, feature_maps):
     plt.title(layer_name)
     plt.grid(False)
     plt.imshow(image_grid, aspect='auto')
+
+#Test Best Model 1 - based on accuracy: MaxPooling  (Evaluate)
+score = maxpool_model.evaluate(test_images, to_categorical(test_labels))
+print('Test loss MaxPool model:', score[0])
+print('Test accuracy MaxPool model:', score[1])
+
+#Test Best Model 1 - based on accuracy: MaxPooling  (predict)
+predictions = maxpool_model.predict(test_images)
+print(class_names[np.argmax(predictions[0])])
+#Plot test image
+plt.imshow(test_images[0],cmap=plt.cm.binary)
+plt.show()
+
+#Test Best Model 2 - based on accuracy: Filter (Evaluate)
+score = filter_model.evaluate(test_images, to_categorical(test_labels))
+print('Test loss Baseline Model:', score[0])
+print('Test accuracy Baseline Model:', score[1])
+
+#Test Best Model 2 - based on accuracy: Filter (predict)
+predictions = filter_model.predict(test_images)
+print(class_names[np.argmax(predictions[0])])
+#Plot test image
+plt.imshow(test_images[0],cmap=plt.cm.binary)
+plt.show()
