@@ -2,8 +2,11 @@ import cv2
 import numpy as np
 from sklearn.preprocessing import LabelBinarizer
 
+
+""" Load the Standford40 dataset, perform data preprocessing """
+
 def loadSF40(img_size=(224,224)):
-    # Load the Standford40 dataset 
+ 
     with open('../Stanford40/ImageSplits/train.txt', 'r') as f:
         train_files = list(map(str.strip, f.readlines()))
         train_labels = ['_'.join(name.split('_')[:-1]) for name in train_files]
@@ -34,6 +37,9 @@ def loadSF40(img_size=(224,224)):
     SF_training_set, SF_test_set = dataPreprocessing(SF_training_set, SF_test_set, img_size=img_size)
     
     return (SF_training_set, train_labels, SF_test_set, test_labels)
+
+
+""" Load the TVHI dataset """
 
 def loadTVHIData(img_size=(224,224)):
     
@@ -78,7 +84,6 @@ def loadTVHIData(img_size=(224,224)):
         vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame)
         success, image = vidcap.read()
         if success:
-            frame = cv2.resize(frame, img_size)  #Do we need to resize this one? 
             TVHI_test_set.append(image)
     
     TVHI_training_set, TVHI_test_set = dataPreprocessing(TVHI_training_set, TVHI_test_set)
@@ -120,35 +125,44 @@ def opticalFlowCalculator(video_path, img_size=(224,224)):
     optical_flow_data = []
     
     for video in video_path:
-    
-        video_OF_frames = []
+
+        vidcap = cv2.VideoCapture(f'../TVHI_data/tV_human_interactions_videos/{video}') # get video
+        middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)      # get index of middle frame
+        vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame)               # set the video to the middle frame    
+        success, old_frame = vidcap.read()                              # read image
+
+        hsv = np.zeros_like(old_frame) 
+        hsv[...,1] = 255                                                # Set Value to constant
+
+        old_frame = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)         # Convert to grayscale to fit algorithm (Farneback)
+        old_frame  = cv2.resize(old_frame, img_size)                   # Resize image to fit the other data
+
+        OF_frames = []
         
-        vidcap = cv2.VideoCapture(f'../TVHI_data/tV_human_interactions_videos/{video}')
+        OF_params = [0.5, 3, 15, 3, 5, 1.2, 0]
         
-        frame_count = vidcap.get(cv2.CAP_PROP_FRAME_COUNT)
-        start_frame = int(frame_count/2)
-        
-        vidcap.set(cv2.CAP_PROP_POS_FRAMES, start_frame) #Get the frame in the middle of the video.
-        success, prev_frame = vidcap.read()
-        
-        prev_image  =  cv2.cvtColor(prev_frame,cv2.COLOR_BGR2GRAY)
-        prev_image  = cv2.resize(prev_image, img_size)
-    
-        hsv = np.zeros_like(prev_image)
-        hsv[...,1] = 255
-        
-        for frame_index in range(8):
+        while True:
             success, new_frame = vidcap.read()
-            if success:
-                new_image  = cv2.cvtColor(new_frame,cv2.COLOR_BGR2GRAY)
-                new_image  = cv2.resize(new_image, img_size)
-    
-                optical_flow = cv2.calcOpticalFlowFarneback(prev_image,new_image, None, 0.5, 3, 15, 3, 5, 1.2, 0)
-                video_OF_frames.append(optical_flow)
-    
-                prev_image = new_image
+            if not success:
+                break
+            
+            #Do preprocessing of new frame 
+            new_frame  = cv2.cvtColor(new_frame,cv2.COLOR_BGR2GRAY)
+            new_frame  = cv2.resize(new_frame, img_size)
+
+            flow = cv2.calcOpticalFlowFarneback(old_frame,new_frame, None, OF_params)
+
+            mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
+            hsv[..., 0] = ang * 180 / np.pi / 2
+            hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+            bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+
+            OF_frames.append(bgr)
+
+            old_frame = new_frame
                 
-        optical_flow_data.append(np.asarray(video_OF_frames))
+        optical_flow_data.append(np.asarray(OF_frames))
     
     return optical_flow_data
 
