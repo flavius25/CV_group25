@@ -39,7 +39,7 @@ def loadSF40(img_size=(224,224)):
     return (SF_training_set, train_labels, SF_test_set, test_labels)
 
 
-""" Load the TVHI dataset """
+""" Load the TVHI dataset, do data preprocessing """
 
 def loadTVHIData(img_size=(224,224)):
     
@@ -90,8 +90,10 @@ def loadTVHIData(img_size=(224,224)):
     train_labels = set_2_label
     test_labels = set_1_label
     
-    return (TVHI_training_set, train_labels, TVHI_test_set, test_labels)    
+    return (TVHI_training_set, train_labels, TVHI_test_set, test_labels) 
 
+
+""" Data Preprocessing Function """
 
 def dataPreprocessing(training_set:list, test_set:list, img_size=(224,224), padding = False):
     
@@ -120,6 +122,8 @@ def dataPreprocessing(training_set:list, test_set:list, img_size=(224,224), padd
 
     return training_set, test_set
 
+
+""" Function for calculating the optical flow with Farnebäck algorithm """
 
 def opticalFlowCalculator(video_path, img_size=(224,224)):
     optical_flow_data = []
@@ -167,6 +171,7 @@ def opticalFlowCalculator(video_path, img_size=(224,224)):
     return optical_flow_data
 
 
+""" the Optical Flow input to the CNN """
 
 def opticalFlowInput():
     
