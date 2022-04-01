@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from sklearn.preprocessing import LabelBinarizer
+
 
 
 """ Load the Standford40 dataset, perform data preprocessing """
@@ -71,7 +71,7 @@ def loadTVHIData(img_size=(224,224)):
     for video in set_2:
         vidcap = cv2.VideoCapture(f'../TVHI_data/tV_human_interactions_videos/{video}')
         middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)
-        vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame) #Get the frame in the middle of the video.
+        vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame) #Get the middle frame of the video
         success, image = vidcap.read()
         if success:
             frame = cv2.resize(frame, img_size)
@@ -127,21 +127,21 @@ def opticalFlowCalculator(video_path, img_size=(224,224)):
     for video in video_path:
 
         vidcap = cv2.VideoCapture(f'../TVHI_data/tV_human_interactions_videos/{video}') # get video
-        middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)      # get index of middle frame
+        middle_frame = int((vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)-8)      # get index of middle frame, set to -8 frames back so that when we take stack of frames, the middle one will be in the middle of the stack
         vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame)               # set the video to the middle frame    
         success, old_frame = vidcap.read()                              # read image
 
         hsv = np.zeros_like(old_frame) 
-        hsv[...,1] = 255                                                # Set Value to constant
+        hsv[...,1] = 255                                                # Set HSV's Value-channel to constant
 
         old_frame = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)         # Convert to grayscale to fit algorithm (Farneback)
         old_frame  = cv2.resize(old_frame, img_size)                   # Resize image to fit the other data
 
-        OF_frames = []
+        stackOFframes = []
         
-        OF_params = [0.5, 3, 15, 3, 5, 1.2, 0]
+        OF_params = [0.5, 3, 15, 3, 5, 1.2, 0] #default Farnebacks parameters
         
-        while True:
+        for i in range(16): #Loop over 16 frames, middle frame will be middle of stack
             success, new_frame = vidcap.read()
             if not success:
                 break
@@ -150,19 +150,19 @@ def opticalFlowCalculator(video_path, img_size=(224,224)):
             new_frame  = cv2.cvtColor(new_frame,cv2.COLOR_BGR2GRAY)
             new_frame  = cv2.resize(new_frame, img_size)
 
-            flow = cv2.calcOpticalFlowFarneback(old_frame,new_frame, None, OF_params)
+            flow = cv2.calcOpticalFlowFarneback(old_frame,new_frame, None, OF_params)   # calculate the optical flow for each pixel in the frame with Farneback
 
+            #Encode the optical flow and convert to bgr image
             mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
             hsv[..., 0] = ang * 180 / np.pi / 2
             hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
             bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
+            stackOFframes.append(bgr)           # add the stack of 16 frames to list
 
-            OF_frames.append(bgr)
-
-            old_frame = new_frame
+            old_frame = new_frame               # update the previous frame to current frame
                 
-        optical_flow_data.append(np.asarray(OF_frames))
+        optical_flow_data.append(np.asarray(stackOFframes))     #make the stack of frames into an np array and store in general optical flow data list
     
     return optical_flow_data
 
