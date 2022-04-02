@@ -95,32 +95,31 @@ def loadTVHIData(img_size=(224,224)):
 
 """ Data Preprocessing Function """
 
-def dataPreprocessing(training_set:list, test_set:list, img_size=(224,224), padding = False):
+def dataPreprocessing(training_images:list, test_images:list, img_size=(224,224), padding = False):
     
     #Preparing the images so that they fit  in the CNN
-    training_set = np.asarray(training_set)
-    test_set = np.asarray(test_set)
+    training_images = np.asarray(training_images)
+    test_images = np.asarray(test_images)
     
     #Use function reshape to reshape the images to 224,224 
-    training_set = training_set.reshape(training_set.shape[0], img_size[0], img_size[1], 3)
-    test_set = test_set.reshape(test_set.shape[0],img_size[0], img_size[1], 3)
+    training_images = training_images.reshape(training_images.shape[0], img_size[0], img_size[1], 3)
+    test_images = test_images.reshape(test_images.shape[0],img_size[0], img_size[1], 3)
 
     # normalise -scale to range 0-1   
-    training_set = training_set / 255.0
-    test_set = test_set / 255.0
+    training_images = training_images / 255.0
+    test_images = test_images / 255.0
 
     if padding:
-        print(f"Image shape before: {train_images[0].shape}")
+        print(f"Image shape before: {training_images[0].shape}")
 
         # Pad images with 0s since we want information in the edges
         padding_size = ((0,0),(2,2),(2,2))
-        train_images      = np.pad(train_images, padding_size, 'constant')
-        validation_images = np.pad(validation_images, padding_size, 'constant')
+        training_images      = np.pad(training_images, padding_size, 'constant')
         test_images       = np.pad(test_images, padding_size, 'constant')
 
-        print(f"Updated Image Shape: {train_images[0].shape}.")
+        print(f"Updated Image Shape: {training_images[0].shape}.")
 
-    return training_set, test_set
+    return training_images, test_images
 
 
 """ Function for calculating the optical flow with Farnebäck algorithm """
