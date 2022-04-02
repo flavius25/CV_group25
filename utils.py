@@ -7,37 +7,49 @@ import numpy as np
 
 def loadSF40(img_size=(224,224)):
  
-    with open('../Stanford40/ImageSplits/train.txt', 'r') as f:
+    with open('Stanford40/ImageSplits/train.txt', 'r') as f:
         train_files = list(map(str.strip, f.readlines()))
         train_labels = ['_'.join(name.split('_')[:-1]) for name in train_files]
-        print(f'Train files ({len(train_files)}):\n\t{train_files}')
-        print(f'Train labels ({len(train_labels)}):\n\t{train_labels}\n')
+        train_imgnames = list(f.readlines())
+        print(train_files[0:5])
+        #print(f'Train files ({len(train_files)}):\n\t{train_files}')
+        #print(f'Train labels ({len(train_labels)}):\n\t{train_labels}\n')
     
-    with open('../Stanford40/ImageSplits/test.txt', 'r') as f:
+    with open('Stanford40/ImageSplits/test.txt', 'r') as f:
         test_files = list(map(str.strip, f.readlines()))
         test_labels = ['_'.join(name.split('_')[:-1]) for name in test_files]
-        print(f'Test files ({len(test_files)}):\n\t{test_files}')
-        print(f'Test labels ({len(test_labels)}):\n\t{test_labels}\n')
+        #print(f'Test files ({len(test_files)}):\n\t{test_files}')
+        #print(f'Test labels ({len(test_labels)}):\n\t{test_labels}\n')
+        print("Lengt of train_files: ", len(train_files))
         
     action_categories = sorted(list(set(['_'.join(name.split('_')[:-1]) for name in train_files])))
     print(f'Action categories ({len(action_categories)}):\n{action_categories}')
     
-    #Read images and put into list
-    SF_training_set = []
+   
+    #Read images, resize to correct size and put into list
+    SF_training_set = np.empty((len(train_files), img_size[0],img_size[1], 3))
     for i in range(len(train_files)):
-        img = cv2.imread(f'../Stanford40/JPEGImages/{train_files[i]}')
-        SF_training_set.append(img)
-    
-    SF_test_set = []
+        img = cv2.imread(f'Stanford40/JPEGImages/{train_files[i]}')
+        img = cv2.resize(img, img_size)
+        np.asarray(img)
+        SF_training_set[i] = img
+    print("Im here now!!")
+      
+
+    SF_test_set = np.empty((len(test_files), img_size[0],img_size[1], 3))
     for im in range(len(test_files)):
-        img = cv2.imread(f'../Stanford40/JPEGImages/{test_files[i]}')
-        SF_test_set.append(im)
+        img = cv2.imread(f'Stanford40/JPEGImages/{test_files[i]}')
+        img = cv2.resize(img, img_size)
+        np.asarray(img)
+        SF_test_set[i] = img
     
     #Preprocess data with dataPreprocessing function
     SF_training_set, SF_test_set = dataPreprocessing(SF_training_set, SF_test_set, img_size=img_size)
+    print("Finished!")
     
-    return (SF_training_set, train_labels, SF_test_set, test_labels)
+    return (SF_training_set, train_labels, SF_test_set, test_labels, action_categories)
 
+    #/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/
 
 """ Load the TVHI dataset, do data preprocessing """
 
@@ -90,24 +102,23 @@ def loadTVHIData(img_size=(224,224)):
     train_labels = set_2_label
     test_labels = set_1_label
     
-    return (TVHI_training_set, train_labels, TVHI_test_set, test_labels) 
+    return (TVHI_training_set, train_labels, TVHI_test_set, test_labels, classes) 
 
 
 """ Data Preprocessing Function """
 
-def dataPreprocessing(training_images:list, test_images:list, img_size=(224,224), padding = False):
+def dataPreprocessing(training_images, test_images, img_size=(224,224), padding = False):
     
-    #Preparing the images so that they fit  in the CNN
-    training_images = np.asarray(training_images)
-    test_images = np.asarray(test_images)
+    print("Shape 1 :" ,training_images[0].shape)
     
     #Use function reshape to reshape the images to 224,224 
-    training_images = training_images.reshape(training_images.shape[0], img_size[0], img_size[1], 3)
-    test_images = test_images.reshape(test_images.shape[0],img_size[0], img_size[1], 3)
+    # training_images = training_images.reshape(training_images.shape[0], img_size[0], img_size[1], 3)
+    # test_images = test_images.reshape(test_images.shape[0], img_size[0], img_size[1], 3)
 
     # normalise -scale to range 0-1   
     training_images = training_images / 255.0
     test_images = test_images / 255.0
+    print("Done!")
 
     if padding:
         print(f"Image shape before: {training_images[0].shape}")
