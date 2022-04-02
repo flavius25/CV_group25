@@ -42,14 +42,10 @@ def loadSF40(img_size=(224,224)):
         img = cv2.resize(img, img_size)
         np.asarray(img)
         SF_test_set[i] = img
-    
-    #Preprocess data with dataPreprocessing function
-    SF_training_set, SF_test_set = dataPreprocessing(SF_training_set, SF_test_set, img_size=img_size)
-    print("Finished!")
+   
     
     return (SF_training_set, train_labels, SF_test_set, test_labels, action_categories)
 
-    #/home/annadollbo/Documents/ComputerVision/CV_group25/CV_group25/
 
 """ Load the TVHI dataset, do data preprocessing """
 
@@ -98,39 +94,10 @@ def loadTVHIData(img_size=(224,224)):
         if success:
             TVHI_test_set.append(image)
     
-    TVHI_training_set, TVHI_test_set = dataPreprocessing(TVHI_training_set, TVHI_test_set)
     train_labels = set_2_label
     test_labels = set_1_label
     
     return (TVHI_training_set, train_labels, TVHI_test_set, test_labels, classes) 
-
-
-""" Data Preprocessing Function """
-
-def dataPreprocessing(training_images, test_images, img_size=(224,224), padding = False):
-    
-    print("Shape 1 :" ,training_images[0].shape)
-    
-    #Use function reshape to reshape the images to 224,224 
-    # training_images = training_images.reshape(training_images.shape[0], img_size[0], img_size[1], 3)
-    # test_images = test_images.reshape(test_images.shape[0], img_size[0], img_size[1], 3)
-
-    # normalise -scale to range 0-1   
-    training_images = training_images / 255.0
-    test_images = test_images / 255.0
-    print("Done!")
-
-    if padding:
-        print(f"Image shape before: {training_images[0].shape}")
-
-        # Pad images with 0s since we want information in the edges
-        padding_size = ((0,0),(2,2),(2,2))
-        training_images      = np.pad(training_images, padding_size, 'constant')
-        test_images       = np.pad(test_images, padding_size, 'constant')
-
-        print(f"Updated Image Shape: {training_images[0].shape}.")
-
-    return training_images, test_images
 
 
 """ Function for calculating the optical flow with Farnebäck algorithm """
