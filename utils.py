@@ -80,7 +80,7 @@ def loadTVHIData(img_size=(224,224)):
         vidcap = cv2.VideoCapture(f'../TVHI_data/tV_human_interactions_videos/{video}')
         middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)
         vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame) #Get the middle frame of the video
-        success, image = vidcap.read()
+        success, frame = vidcap.read()
         if success:
             frame = cv2.resize(frame, img_size)
             TVHI_training_set.append(frame)
@@ -90,9 +90,9 @@ def loadTVHIData(img_size=(224,224)):
         vidcap = cv2.VideoCapture(f'../TVHI_data/tV_human_interactions_videos/{video}')
         middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)
         vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame)
-        success, image = vidcap.read()
+        success, frame = vidcap.read()
         if success:
-            TVHI_test_set.append(image)
+            TVHI_test_set.append(frame)
     
     train_labels = set_2_label
     test_labels = set_1_label
