@@ -133,13 +133,7 @@ def opticalFlowCalculator(video_path, img_size=(224,224)):
 
             flow = cv2.calcOpticalFlowFarneback(old_frame,new_frame, None, OF_params)   # calculate the optical flow for each pixel in the frame with Farneback
 
-            #Encode the optical flow as polar coordinates and impose color coding. Convert to bgr image.
-            mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
-            hsv[..., 0] = ang * 180 / np.pi / 2
-            hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
-            bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-
-            stackOFframes.append(bgr)           # add the stack of 16 frames to list
+            stackOFframes.append(flow)           # add the stack of 16 frames to list
 
             old_frame = new_frame               # update the previous frame to current frame
                 
