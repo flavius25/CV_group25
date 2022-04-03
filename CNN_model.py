@@ -27,6 +27,34 @@ print("Here!", train_labels[0])
 train_images, validation_images, train_labels, validation_labels = train_test_split(SF_training_set, train_labels, test_size=0.1, random_state=0, stratify=train_labels)
 
 
+"""   Data augmentation and Preprocessing """
+# data augmentation generator defining the augmentations and data-preprocessing to be made
+data_generator = ImageDataGenerator(
+        rescale=1.0/255.0, #normalising pixel values to range 0-1
+        rotation_range=20, # rotation
+        width_shift_range=0.2, # horizontal shift
+        height_shift_range=0.2, # vertical shift
+        zoom_range=0.2, # zoom
+        horizontal_flip=True, # horizontal flip
+        brightness_range=[0.5,1.2]  # brightness
+        )
+
+#Fit training_set to generator to calculate statistics 
+data_generator.fit(SF_training_set)
+
+#Create iterators to pass to the model during training
+train_iterator = data_generator.flow(train_images, train_labels, batch_size=64)
+validation_iterator =  data_generator.flow(validation_images, validation_labels, batch_size=64)
+test_iterator = data_generator.flow(SF_test_set, test_labels, batch_size=64)
+
+
+""" This is how we will fit it with the model """
+# fit model with generator
+# model.fit_generator(train_iterator, steps_per_epoch=len(train_iterator), epochs=5)
+# # evaluate model
+# _, acc = model.evaluate_generator(test_iterator, steps=len(test_iterator), verbose=0)
+
+
 
 
 # inputs = layers.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
