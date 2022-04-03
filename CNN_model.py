@@ -69,6 +69,7 @@ SF_test_set = SF_test_set.map(onehot_encoding)
 SF_test_set = SF_test_set.batch(batch_size=BATCH_SIZE, drop_remainder=True)
 
 """ Build & Train Stanford40 Model EfficientNet"""
+
 # Define the input and output layers of the model 
 inputs = layers.Input(shape=(IMG_SIZE[0], IMG_SIZE[1], 3))
 
@@ -90,6 +91,7 @@ model.save_weights("model_weights.h5")
 
 
 """ Building transfer learning model """
+
 TL_model = 4
 
 
