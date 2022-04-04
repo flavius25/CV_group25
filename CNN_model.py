@@ -1,7 +1,6 @@
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from keras import layers
-from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import TensorBoard, LearningRateScheduler
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import seaborn as sns
@@ -10,39 +9,32 @@ from matplotlib.pyplot import figure
 import efficientnet.keras as efn 
 from keras.models import Sequential
 from keras import layers
-from utils import * 
-
-""" Load dataset """
-#Load the dataset which has already been preprocessed
-SF_training_set, train_labels, SF_test_set, test_labels, class_names = utils.loadSF40(img_size =  IMG_SIZE)
-
-#Split the trainingset to obtain 10% stratified validation set
-train_images, validation_images, train_labels, validation_labels = train_test_split(SF_training_set, train_labels, test_size=0.1, random_state=0, stratify=train_labels)
+from utils import *
 
 """ Global variables """
 IMG_SIZE = (224,224)
 EPOCHS = 50
 BATCH_SIZE = 64
+
+needDataDirs = True # set to False if images already sorted
+
+utils.createDataDirectories(needDataDirs)
+
+""" Load dataset """
+#Load the dataset which has already been preprocessed
+SF_training_set,  SF_test_set = utils.loadSF40(img_size =  IMG_SIZE)
+
+#Split the trainingset to obtain 10% stratified validation set
+train_images, validation_images, train_labels, validation_labels = train_test_split(SF_training_set, train_labels, test_size=0.1, random_state=0, stratify=train_labels)
+
+#no of train and validation images
 NO_TRAIN_IMGS = len(train_labels)
 NO_VAL_IMGS = len(validation_labels)
 
-"""   Data augmentation and Normalisation """
-# data augmentation generator defining the augmentations and data-preprocessing to be made
-data_generator = ImageDataGenerator(
-        rescale=1.0/255.0, #normalising pixel values to range 0-1
-        rotation_range=20, # rotation
-        width_shift_range=0.2, # horizontal shift
-        height_shift_range=0.2, # vertical shift
-        zoom_range=0.2, # zoom
-        horizontal_flip=True, # horizontal flip
-        brightness_range=[0.5,1.2]  # brightness
-        )
-
-#Create iterators to pass to the model during training
-train_iterator = data_generator.flow(train_images, train_labels, batch_size=64)
-validation_iterator =  data_generator.flow(validation_images, validation_labels, batch_size=64)
-test_iterator = data_generator.flow(SF_test_set, test_labels, batch_size=64)
-
+#Get iterator for data augmentation and 
+train_iterator = getIterator(train_images, train_labels)
+validation_iterator =  getIterator(validation_images, validation_labels)
+test_iterator = getIterator(SF_test_set, test_labels)
 
 """ This is how we will fit it with the model """
 # fit model with generator

@@ -1,50 +1,76 @@
 import cv2
 import numpy as np
+import os
+from tensorflow import keras
+from keras.preprocessing.image import ImageDataGenerator
 
+
+""" Function for sorting the Stanford40 data in a way that can be accessed by Keras data loading function """
+
+def createDataDirectories(boolean):
+
+    if boolean == True:
+
+        with open('Stanford40/ImageSplits/train.txt', 'r') as f:
+            train_files = list(map(str.strip, f.readlines()))
+            train_labels = ['_'.join(name.split('_')[:-1]) for name in train_files]
+            print(train_files[0:5])
+            #print(f'Train files ({len(train_files)}):\n\t{train_files}')
+            #print(f'Train labels ({len(train_labels)}):\n\t{train_labels}\n')
+        
+        with open('Stanford40/ImageSplits/test.txt', 'r') as f:
+            test_files = list(map(str.strip, f.readlines()))
+            test_labels = ['_'.join(name.split('_')[:-1]) for name in test_files]
+            #print(f'Test files ({len(test_files)}):\n\t{test_files}')
+            #print(f'Test labels ({len(test_labels)}):\n\t{test_labels}\n')
+            print("Lengt of train_files: ", len(train_files))
+            
+        action_categories = sorted(list(set(['_'.join(name.split('_')[:-1]) for name in train_files])))
+        print(f'Action categories ({len(action_categories)}):\n{action_categories}')   
+
+        # Specify names of directories for train and test data
+        dirs_needed = ["SF_train", "SF_test"]
+        files_n_labels = [[train_files, train_labels], [test_files, train_labels]]
+
+        for set in len(dirs_needed):
+
+            os.mkdir(dirs_needed[set]) # make directory each for training and test set
+
+            for label in action_categories:
+                os.makedir(f"{dirs_needed[set]}/{label}") # in each directory make directories for all categories
+
+            #Loop through all images and place them in the correct folder
+            for file in len(files_n_labels[set][0]):
+                label = files_n_labels[set][1][file]
+                image = cv2.imread(f"Stanford40/JPEGImages/{files_n_labels[set][0][file]}")
+                image_name = files_n_labels[set][1][file]
+                path = f"/{dirs_needed[set]}/{label}"
+                (cv2.imwrite(os.path.join(path,image_name), image)) #Write image to directory 
+
+        print("Done sorting images")
 
 
 """ Load the Standford40 dataset, perform data preprocessing """
 
 def loadSF40(img_size=(224,224)):
  
-    with open('Stanford40/ImageSplits/train.txt', 'r') as f:
-        train_files = list(map(str.strip, f.readlines()))
-        train_labels = ['_'.join(name.split('_')[:-1]) for name in train_files]
-        train_imgnames = list(f.readlines())
-        print(train_files[0:5])
-        #print(f'Train files ({len(train_files)}):\n\t{train_files}')
-        #print(f'Train labels ({len(train_labels)}):\n\t{train_labels}\n')
-    
-    with open('Stanford40/ImageSplits/test.txt', 'r') as f:
-        test_files = list(map(str.strip, f.readlines()))
-        test_labels = ['_'.join(name.split('_')[:-1]) for name in test_files]
-        #print(f'Test files ({len(test_files)}):\n\t{test_files}')
-        #print(f'Test labels ({len(test_labels)}):\n\t{test_labels}\n')
-        print("Lengt of train_files: ", len(train_files))
-        
-    action_categories = sorted(list(set(['_'.join(name.split('_')[:-1]) for name in train_files])))
-    print(f'Action categories ({len(action_categories)}):\n{action_categories}')
-    
-   
-    #Read images, resize to correct size and put into list
-    SF_training_set = np.empty((len(train_files), img_size[0],img_size[1], 3))
-    for i in range(len(train_files)):
-        img = cv2.imread(f'Stanford40/JPEGImages/{train_files[i]}')
-        img = cv2.resize(img, img_size)
-        np.asarray(img)
-        SF_training_set[i] = img
-    print("Im here now!!")
-      
+    train_ds = keras.utils.image_dataset_from_directory(
+    directory='Stanford40/SF_train/',
+    labels='inferred',
+    label_mode='categorical',
+    batch_size=32,
+    image_size=img_size
+    )
 
-    SF_test_set = np.empty((len(test_files), img_size[0],img_size[1], 3))
-    for im in range(len(test_files)):
-        img = cv2.imread(f'Stanford40/JPEGImages/{test_files[i]}')
-        img = cv2.resize(img, img_size)
-        np.asarray(img)
-        SF_test_set[i] = img
-   
+    test_ds = keras.utils.image_dataset_from_directory(
+    directory='Stanford40/SF_test/',
+    labels='inferred',
+    label_mode='categorical',
+    batch_size=32,
+    image_size=img_size
+    )
     
-    return (SF_training_set, train_labels, SF_test_set, test_labels, action_categories)
+    return train_ds, test_ds
 
 
 """ Load the TVHI dataset, do data preprocessing """
@@ -176,3 +202,20 @@ def opticalFlowInput():
     test_labels = set_1_label
     
     return (training_data, train_labels, testing_data, test_labels)
+
+"""   Data augmentation and Normalisation """
+def getIterator(img_set, img_labels):
+
+    # data augmentation generator defining the augmentations and data-preprocessing to be made
+    data_generator = ImageDataGenerator(
+            rescale=1.0/255.0, #normalising pixel values to range 0-1
+            rotation_range=20, # rotation
+            width_shift_range=0.2, # horizontal shift
+            height_shift_range=0.2, # vertical shift
+            zoom_range=0.2, # zoom
+            horizontal_flip=True, # horizontal flip
+            brightness_range=[0.5,1.2]  # brightness
+            )
+
+    #Create iterators to pass to the model during training
+    return data_generator.flow(img_set, img_labels, batch_size=64)
