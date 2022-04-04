@@ -59,7 +59,8 @@ def loadSF40(img_size=(224,224)):
     labels='inferred',
     label_mode='categorical',
     batch_size=32,
-    image_size=img_size
+    image_size=img_size,
+    shuffle=True
     )
 
     test_ds = keras.utils.image_dataset_from_directory(
@@ -219,3 +220,4 @@ def getIterator(img_set, img_labels):
 
     #Create iterators to pass to the model during training
     return data_generator.flow(img_set, img_labels, batch_size=64)
+

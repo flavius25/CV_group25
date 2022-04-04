@@ -15,14 +15,17 @@ from utils import *
 IMG_SIZE = (224,224)
 EPOCHS = 50
 BATCH_SIZE = 64
+NUM_CLASSES = 40 # 40 classes in the Stanford40 dataset
 
-needDataDirs = True # set to False if images already sorted
+needDataDirs = True # set to False if images already sorted and available
 
-utils.createDataDirectories(needDataDirs)
+createDataDirectories(needDataDirs)
 
 """ Load dataset """
 #Load the dataset which has already been preprocessed
-SF_training_set,  SF_test_set = utils.loadSF40(img_size =  IMG_SIZE)
+SF_training_set,  SF_test_set = loadSF40(img_size =  IMG_SIZE)
+
+
 
 #Split the trainingset to obtain 10% stratified validation set
 train_images, validation_images, train_labels, validation_labels = train_test_split(SF_training_set, train_labels, test_size=0.1, random_state=0, stratify=train_labels)
@@ -47,7 +50,7 @@ test_iterator = getIterator(SF_test_set, test_labels)
 """ One-hot encoding """
 
 def onehot_encoding(image, label):
-    label = tf.one_hot(label, class_names)
+    label = tf.one_hot(label, NUM_CLASSES)
     return image, label
 
 
@@ -56,6 +59,12 @@ train_images = train_images.map(
 
 train_images = train_images.batch(batch_size=BATCH_SIZE, drop_remainder=True)
 train_images = train_images.prefetch(tf.data.AUTOTUNE)
+
+validation_images = validation_images.map(
+    onehot_encoding, num_parallel_calls=tf.data.AUTOTUNE)
+
+validation_images = validation_images.batch(batch_size=BATCH_SIZE, drop_remainder=True)
+validation_images = validation_images.prefetch(tf.data.AUTOTUNE)
 
 SF_test_set = SF_test_set.map(onehot_encoding)
 SF_test_set = SF_test_set.batch(batch_size=BATCH_SIZE, drop_remainder=True)
