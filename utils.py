@@ -3,6 +3,7 @@ import numpy as np
 import os
 from tensorflow import keras
 from keras.preprocessing.image import ImageDataGenerator
+import matplotlib.pyplot as plt
 
 
 """ Function for sorting the Stanford40 data in a way that can be accessed by Keras data loading function """
@@ -26,7 +27,8 @@ def createDataDirectories(boolean):
 
         # Specify names of directories for train and test data
         dirs_needed = ["SF_train", "SF_test"]
-        files_n_labels = [[train_files, train_labels], [test_files, train_labels]]
+        files_n_labels = [[train_files, train_labels], [test_files, test_labels]]
+
 
         for s in range(len(dirs_needed)):
 
@@ -35,25 +37,26 @@ def createDataDirectories(boolean):
             for label in action_categories:
                 os.mkdir(f"{dirs_needed[s]}/{label}") # in each directory make directories for all categories
 
+            counter = 0
             #Loop through all images and place them in the correct folder
             for file in range(len(files_n_labels[s][0])):
                 label = files_n_labels[s][1][file]
                 image = cv2.imread(f"Stanford40/JPEGImages/{files_n_labels[s][0][file]}")
-                image_name = f"{files_n_labels[s][1][file]}.jpg"
-                path = f'home/annadollbo/Documents/ComputerVision/CV_group25/CV_Group25/{dirs_needed[s]}/{label}/'
-                print(path+image_name)
+                image_name = f"{files_n_labels[s][1][file]}_{counter}.jpg"
+                print(image_name, label)
+                path = f'./{dirs_needed[s]}/{label}'
+                counter += 1
                 cv2.imwrite(os.path.join(path,image_name), image) #Write image to directory 
 
-        print("Done sorting images")
+        print("Done sorting images!")
 
-createDataDirectories(True)
 
 """ Load the Standford40 dataset """
 
 def loadSF40(img_size=(224,224)):
  
     train_ds = keras.utils.image_dataset_from_directory(
-    directory='Stanford40/SF_train/',
+    directory='SF_train/',
     labels='inferred',
     label_mode='categorical',
     batch_size=32,
@@ -62,7 +65,7 @@ def loadSF40(img_size=(224,224)):
     )
 
     test_ds = keras.utils.image_dataset_from_directory(
-    directory='Stanford40/SF_test/',
+    directory='SF_test/',
     labels='inferred',
     label_mode='categorical',
     batch_size=32,
@@ -219,3 +222,27 @@ def getIterator(img_set, img_labels):
     #Create iterators to pass to the model during training
     return data_generator.flow(img_set, img_labels, batch_size=64)
 
+
+""" Function for plotting accuracy"""
+
+def plotAccuracy(title, train_acc, val_acc):
+    plt.title(title)
+    plt.plot(train_acc)
+    plt.plot(val_acc)
+    plt.ylabel("Accuracy")
+    plt.xlabel("Epochs")
+    plt.legend(['train', 'val'], loc = 'upper left')
+    plt.ylim([0.65, 1])
+    plt.show()
+
+""" Function for plotting loss"""
+
+def plotLoss(title, train_loss, val_loss):
+    plt.title(title)
+    plt.plot(train_loss)
+    plt.plot(val_loss)
+    plt.ylabel("Loss")
+    plt.xlabel("Epochs")
+    plt.legend(['train', 'val'], loc = 'upper left')
+    plt.ylim([0, 1])
+    plt.show()
