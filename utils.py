@@ -4,31 +4,34 @@ import os
 from tensorflow import keras
 from keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 
 """ Function for sorting the Stanford40 data in a way that can be accessed by Keras data loading function """
 
-def createDataDirectories(boolean):
+def dataExtraction(needDirectories):
 
-    if boolean == True:
+    with open('Stanford40/ImageSplits/train.txt', 'r') as f:
+        train_files = list(map(str.strip, f.readlines()))
+        train_labels = ['_'.join(name.split('_')[:-1]) for name in train_files]
+    
+    
+    with open('Stanford40/ImageSplits/test.txt', 'r') as f:
+        test_files = list(map(str.strip, f.readlines()))
+        test_labels = ['_'.join(name.split('_')[:-1]) for name in test_files]
 
-        with open('Stanford40/ImageSplits/train.txt', 'r') as f:
-            train_files = list(map(str.strip, f.readlines()))
-            train_labels = ['_'.join(name.split('_')[:-1]) for name in train_files]
         
-        
-        with open('Stanford40/ImageSplits/test.txt', 'r') as f:
-            test_files = list(map(str.strip, f.readlines()))
-            test_labels = ['_'.join(name.split('_')[:-1]) for name in test_files]
+    action_categories = sorted(list(set(['_'.join(name.split('_')[:-1]) for name in train_files])))  
 
-            
-        action_categories = sorted(list(set(['_'.join(name.split('_')[:-1]) for name in train_files])))
-        print(f'Action categories ({len(action_categories)}):\n{action_categories}')   
+    #Split training data here 
+    train_files, validation_files, train_labels, validation_labels = train_test_split(train_files, train_labels, test_size=0.1, random_state=0, stratify=train_labels)
 
-        # Specify names of directories for train and test data
-        dirs_needed = ["SF_train", "SF_test"]
-        files_n_labels = [[train_files, train_labels], [test_files, test_labels]]
+    if needDirectories:
 
+        print("Beginning sorting images...")
+            # Specify names of directories for train and test data
+        dirs_needed = ["SF_train", "SF_test", "SF_validation"]
+        files_n_labels = [[train_files, train_labels], [test_files, test_labels],[validation_files, validation_labels]]
 
         for s in range(len(dirs_needed)):
 
@@ -50,13 +53,26 @@ def createDataDirectories(boolean):
 
         print("Done sorting images!")
 
+    return train_labels, test_labels, validation_labels, action_categories
+
 
 """ Load the Standford40 dataset """
 
-def loadSF40(img_size=(224,224)):
+def loadSF40(img_size=(224,224), needDirectories=False):
+
+    train_labels, test_labels, validation_labels, class_names = dataExtraction(needDirectories)
  
     train_ds = keras.utils.image_dataset_from_directory(
     directory='SF_train/',
+    labels='inferred',
+    label_mode='categorical',
+    batch_size=32,
+    image_size=img_size,
+    shuffle=True
+    )
+
+    val_ds = keras.utils.image_dataset_from_directory(
+    directory='SF_validation/',
     labels='inferred',
     label_mode='categorical',
     batch_size=32,
@@ -72,7 +88,7 @@ def loadSF40(img_size=(224,224)):
     image_size=img_size
     )
     
-    return train_ds, test_ds
+    return train_ds, test_ds, val_ds, train_labels, test_labels, validation_labels, class_names
 
 
 """ Load the TVHI dataset, do data preprocessing """
@@ -105,7 +121,7 @@ def loadTVHIData(img_size=(224,224)):
     # Take middle frame from each video in TVHI dataset
     TVHI_training_set = []
     for video in set_2:
-        vidcap = cv2.VideoCapture(f'../TVHI_data/tV_human_interactions_videos/{video}')
+        vidcap = cv2.VideoCapture(f'TVHI_data/tV_human_interactions_videos/{video}')
         middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)
         vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame) #Get the middle frame of the video
         success, frame = vidcap.read()
@@ -115,7 +131,7 @@ def loadTVHIData(img_size=(224,224)):
             
     TVHI_test_set = []
     for video in set_1:
-        vidcap = cv2.VideoCapture(f'../TVHI_data/tV_human_interactions_videos/{video}')
+        vidcap = cv2.VideoCapture(f'TVHI_data/tV_human_interactions_videos/{video}')
         middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)
         vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame)
         success, frame = vidcap.read()
