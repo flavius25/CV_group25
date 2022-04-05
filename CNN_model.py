@@ -25,10 +25,20 @@ createDataDirectories(needDataDirs)
 #Load the dataset which has already been preprocessed
 SF_training_set,  SF_test_set = loadSF40(img_size =  IMG_SIZE)
 
+train_labels = []
+train_images = []
+
+#Unbatch and extract images and labels from training dataset to do validation split with stratification
+for images, labels in SF_training_set.unbatch():
+    train_labels.append(labels)
+    train_images.append(images)
 
 
 #Split the trainingset to obtain 10% stratified validation set
-train_images, validation_images, train_labels, validation_labels = train_test_split(SF_training_set, train_labels, test_size=0.1, random_state=0, stratify=train_labels)
+train_images, validation_images, train_labels, validation_labels = train_test_split(train_images, train_labels, test_size=0.1, random_state=0, stratify=train_labels)
+
+#convert back to tf Dataset object
+train_images = tf.data.Dataset.from_tensor_slices(train_images)
 
 #no of train and validation images
 NO_TRAIN_IMGS = len(train_labels)
