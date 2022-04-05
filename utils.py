@@ -5,6 +5,8 @@ from tensorflow import keras
 from keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from keras.models import Sequential
+from keras import layers
 
 
 """ Function for sorting the Stanford40 data in a way that can be accessed by Keras data loading function """
@@ -222,21 +224,35 @@ def opticalFlowInput():
     return (training_data, train_labels, testing_data, test_labels)
 
 """   Data augmentation and Normalisation """
-def getIterator(img_set, img_labels):
+def dataAugmentation(img_set, img_labels):
 
     # data augmentation generator defining the augmentations and data-preprocessing to be made
-    data_generator = ImageDataGenerator(
-            rescale=1.0/255.0, #normalising pixel values to range 0-1
-            rotation_range=20, # rotation
-            width_shift_range=0.2, # horizontal shift
-            height_shift_range=0.2, # vertical shift
-            zoom_range=0.2, # zoom
-            horizontal_flip=True, # horizontal flip
-            brightness_range=[0.5,1.2]  # brightness
-            )
+    # data_generator = ImageDataGenerator(
+    #         rescale=1.0/255.0, #normalising pixel values to range 0-1
+    #         rotation_range=20, # rotation
+    #         width_shift_range=0.2, # horizontal shift
+    #         height_shift_range=0.2, # vertical shift
+    #         zoom_range=0.2, # zoom
+    #         horizontal_flip=True, # horizontal flip
+    #         brightness_range=[0.5,1.2]  # brightness
+    #         )
 
     #Create iterators to pass to the model during training
-    return data_generator.flow(img_set, img_labels, batch_size=64)
+    #return data_generator.flow(img_set, img_labels, batch_size=64)
+
+    img_augmentation = Sequential(
+    [
+        layers.Rescaling(scale=1./255),
+        layers.RandomRotation(factor=0.15),
+        layers.RandomTranslation(height_factor=0.1, width_factor=0.1),
+        layers.RandomFlip(mode="horizontal"),
+        layers.RandomContrast(factor=0.1),
+        layers.RandomZoom(0.1)
+    ],
+    name="img_augmentation",
+    )
+
+    return img_augmentation
 
 
 """ Function for plotting accuracy"""
