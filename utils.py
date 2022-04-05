@@ -226,20 +226,6 @@ def opticalFlowInput():
 """   Data augmentation and Normalisation """
 def dataAugmentation(img_set, img_labels):
 
-    # data augmentation generator defining the augmentations and data-preprocessing to be made
-    # data_generator = ImageDataGenerator(
-    #         rescale=1.0/255.0, #normalising pixel values to range 0-1
-    #         rotation_range=20, # rotation
-    #         width_shift_range=0.2, # horizontal shift
-    #         height_shift_range=0.2, # vertical shift
-    #         zoom_range=0.2, # zoom
-    #         horizontal_flip=True, # horizontal flip
-    #         brightness_range=[0.5,1.2]  # brightness
-    #         )
-
-    #Create iterators to pass to the model during training
-    #return data_generator.flow(img_set, img_labels, batch_size=64)
-
     img_augmentation = Sequential(
     [
         layers.Rescaling(scale=1./255),
