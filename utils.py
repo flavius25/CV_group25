@@ -14,16 +14,12 @@ def createDataDirectories(boolean):
         with open('Stanford40/ImageSplits/train.txt', 'r') as f:
             train_files = list(map(str.strip, f.readlines()))
             train_labels = ['_'.join(name.split('_')[:-1]) for name in train_files]
-            print(train_files[0:5])
-            #print(f'Train files ({len(train_files)}):\n\t{train_files}')
-            #print(f'Train labels ({len(train_labels)}):\n\t{train_labels}\n')
+        
         
         with open('Stanford40/ImageSplits/test.txt', 'r') as f:
             test_files = list(map(str.strip, f.readlines()))
             test_labels = ['_'.join(name.split('_')[:-1]) for name in test_files]
-            #print(f'Test files ({len(test_files)}):\n\t{test_files}')
-            #print(f'Test labels ({len(test_labels)}):\n\t{test_labels}\n')
-            print("Lengt of train_files: ", len(train_files))
+
             
         action_categories = sorted(list(set(['_'.join(name.split('_')[:-1]) for name in train_files])))
         print(f'Action categories ({len(action_categories)}):\n{action_categories}')   
@@ -32,25 +28,27 @@ def createDataDirectories(boolean):
         dirs_needed = ["SF_train", "SF_test"]
         files_n_labels = [[train_files, train_labels], [test_files, train_labels]]
 
-        for set in len(dirs_needed):
+        for s in range(len(dirs_needed)):
 
-            os.mkdir(dirs_needed[set]) # make directory each for training and test set
+            os.mkdir(dirs_needed[s]) # make directory each for training and test set
 
             for label in action_categories:
-                os.makedir(f"{dirs_needed[set]}/{label}") # in each directory make directories for all categories
+                os.mkdir(f"{dirs_needed[s]}/{label}") # in each directory make directories for all categories
 
             #Loop through all images and place them in the correct folder
-            for file in len(files_n_labels[set][0]):
-                label = files_n_labels[set][1][file]
-                image = cv2.imread(f"Stanford40/JPEGImages/{files_n_labels[set][0][file]}")
-                image_name = files_n_labels[set][1][file]
-                path = f"/{dirs_needed[set]}/{label}"
-                (cv2.imwrite(os.path.join(path,image_name), image)) #Write image to directory 
+            for file in range(len(files_n_labels[s][0])):
+                label = files_n_labels[s][1][file]
+                image = cv2.imread(f"Stanford40/JPEGImages/{files_n_labels[s][0][file]}")
+                image_name = f"{files_n_labels[s][1][file]}.jpg"
+                path = f'home/annadollbo/Documents/ComputerVision/CV_group25/CV_Group25/{dirs_needed[s]}/{label}/'
+                print(path+image_name)
+                cv2.imwrite(os.path.join(path,image_name), image) #Write image to directory 
 
         print("Done sorting images")
 
+createDataDirectories(True)
 
-""" Load the Standford40 dataset, perform data preprocessing """
+""" Load the Standford40 dataset """
 
 def loadSF40(img_size=(224,224)):
  
