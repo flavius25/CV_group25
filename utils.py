@@ -63,7 +63,7 @@ def dataExtraction(needDirectories):
 def loadSF40(img_size=(224,224), needDirectories=False):
 
     train_labels, test_labels, validation_labels, class_names = dataExtraction(needDirectories)
- 
+
     train_ds = keras.utils.image_dataset_from_directory(
     directory='SF_train/',
     labels='inferred',
@@ -224,21 +224,21 @@ def opticalFlowInput():
     return (training_data, train_labels, testing_data, test_labels)
 
 """   Data augmentation and Normalisation """
-def dataAugmentation(img_set, img_labels):
-
-    img_augmentation = Sequential(
-    [
-        layers.Rescaling(scale=1./255),
-        layers.RandomRotation(factor=0.15),
-        layers.RandomTranslation(height_factor=0.1, width_factor=0.1),
-        layers.RandomFlip(mode="horizontal"),
-        layers.RandomContrast(factor=0.1),
-        layers.RandomZoom(0.1)
-    ],
-    name="img_augmentation",
-    )
-
-    return img_augmentation
+# def dataAugmentation(img_set, img_labels):
+#
+#     img_augmentation = Sequential(
+#     [
+#         layers.Rescaling(scale=1./255),
+#         layers.RandomRotation(factor=0.15),
+#         layers.RandomTranslation(height_factor=0.1, width_factor=0.1),
+#         layers.RandomFlip(mode="horizontal"),
+#         layers.RandomContrast(factor=0.1),
+#         layers.RandomZoom(0.1)
+#     ],
+#     name="img_augmentation",
+#     )
+#
+#     return img_augmentation
 
 
 """ Function for plotting accuracy"""
