@@ -68,7 +68,6 @@ def loadSF40(img_size=(224,224), needDirectories=False):
     directory='SF_train/',
     labels='inferred',
     label_mode='int',
-    #label_mode='categorical',
     batch_size=32,
     image_size=img_size,
     shuffle=True
@@ -78,7 +77,6 @@ def loadSF40(img_size=(224,224), needDirectories=False):
     directory='SF_validation/',
     labels='inferred',
     label_mode='int',
-    #label_mode='categorical',
     batch_size=32,
     image_size=img_size,
     shuffle=True
@@ -88,7 +86,6 @@ def loadSF40(img_size=(224,224), needDirectories=False):
     directory='SF_test/',
     labels='inferred',
     label_mode='int',
-    #label_mode='categorical',
     batch_size=32,
     image_size=img_size
     )
@@ -96,9 +93,9 @@ def loadSF40(img_size=(224,224), needDirectories=False):
     return train_ds, test_ds, val_ds, train_labels, test_labels, validation_labels, class_names
 
 
-""" Load the TVHI dataset, do data preprocessing """
+""" Do dataExtraction on TVHI dataset, get the middle frame and sort into directories for easier data loading """
 
-def loadTVHIData(img_size=(224,224)):
+def dataExtractionTVHI(needDirectories):
     
     set_1_indices = [[2,14,15,16,18,19,20,21,24,25,26,27,28,32,40,41,42,43,44,45,46,47,48,49,50],
                     [1,6,7,8,9,10,11,12,13,23,24,25,27,28,29,30,31,32,33,34,35,44,45,47,48],
@@ -111,43 +108,81 @@ def loadTVHIData(img_size=(224,224)):
     classes = ['handShake', 'highFive', 'hug', 'kiss']  # we ignore the negative class
 
     # test set
-    set_1 = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_1_indices[c]]
-    set_1_label = [f'{classes[c]}' for c in range(len(classes)) for i in set_1_indices[c]]
-    print(f'Set 1 to be used for test ({len(set_1)}):\n\t{set_1}')
-    print(f'Set 1 labels ({len(set_1_label)}):\n\t{set_1_label}\n')
-
+    test_files = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_1_indices[c]]
+    test_labels = [f'{classes[c]}' for c in range(len(classes)) for i in set_1_indices[c]]
+   
     # training set
-    set_2 = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_2_indices[c]]
-    set_2_label = [f'{classes[c]}' for c in range(len(classes)) for i in set_2_indices[c]]
-    print(f'Set 2 to be used for train and validation ({len(set_2)}):\n\t{set_2}')
-    print(f'Set 2 labels ({len(set_2_label)}):\n\t{set_2_label}')
-    
-    
-    # Take middle frame from each video in TVHI dataset
-    TVHI_training_set = []
-    for video in set_2:
-        vidcap = cv2.VideoCapture(f'TVHI_data/tV_human_interactions_videos/{video}')
-        middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)
-        vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame) #Get the middle frame of the video
-        success, frame = vidcap.read()
-        if success:
-            frame = cv2.resize(frame, img_size)
-            TVHI_training_set.append(frame)
-            
-    TVHI_test_set = []
-    for video in set_1:
-        vidcap = cv2.VideoCapture(f'TVHI_data/tV_human_interactions_videos/{video}')
-        middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)
-        vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame)
-        success, frame = vidcap.read()
-        if success:
-            TVHI_test_set.append(frame)
-    
-    train_labels = set_2_label
-    test_labels = set_1_label
-    
-    return (TVHI_training_set, train_labels, TVHI_test_set, test_labels, classes) 
+    train_files = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_2_indices[c]]
+    train_labels = [f'{classes[c]}' for c in range(len(classes)) for i in set_2_indices[c]]
+     
+    #Split training data here 
+    train_files, validation_files, train_labels, validation_labels = train_test_split(train_files, train_labels, test_size=0.15, random_state=0, stratify=train_labels)
 
+
+    if needDirectories:
+        
+        print("Beginning sorting images...")
+            # Specify names of directories for train, validation and test data
+        dirs_needed = ["TVHI_train", "TVHI_test", "TVHI_validation"]
+        files_n_labels = [[train_files, train_labels], [test_files, test_labels],[validation_files, validation_labels]]
+
+        for s in range(len(dirs_needed)):
+
+            os.mkdir(dirs_needed[s]) # make directory each for training, validation and test sets
+
+            for label in classes:
+                os.mkdir(f"{dirs_needed[s]}/{label}") # in each directory make directories for all categories
+
+            counter = 0
+            #Loop through all videos, take middle frame and place them in the correct folder
+            for video in range(len(files_n_labels[s][0])):
+                label = files_n_labels[s][1][video]
+                vidcap = cv2.VideoCapture(f'TVHI_data/tv_human_interactions_videos/{files_n_labels[s][0][video]}')
+                middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)
+                vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame) #Get the middle frame of the video
+                success, frame = vidcap.read()
+                image_name = f"{files_n_labels[s][1][video]}_{counter}.jpg"
+                print(image_name, label)
+                path = f'./{dirs_needed[s]}/{label}'
+                counter += 1
+                cv2.imwrite(os.path.join(path,image_name), frame) #Write image to directory 
+
+        print("Done sorting images!")
+    
+    
+    return train_labels, test_labels, validation_labels, classes
+
+def loadTVHI(img_size=(224,224), needDirectories=False):
+
+    train_labels, test_labels, validation_labels, class_names = dataExtractionTVHI(needDirectories)
+ 
+    train_ds = keras.utils.image_dataset_from_directory(
+    directory='TVHI_train/',
+    labels='inferred',
+    label_mode='int',
+    batch_size=32,
+    image_size=img_size,
+    shuffle=True
+    )
+
+    val_ds = keras.utils.image_dataset_from_directory(
+    directory='TVHI_validation/',
+    labels='inferred',
+    label_mode='int',
+    batch_size=32,
+    image_size=img_size,
+    shuffle=True
+    )
+
+    test_ds = keras.utils.image_dataset_from_directory(
+    directory='TVHI_test/',
+    labels='inferred',
+    label_mode='int',
+    batch_size=32,
+    image_size=img_size
+    )
+    
+    return train_ds, test_ds, val_ds, train_labels, test_labels, validation_labels, class_names
 
 """ Function for calculating the optical flow with Farnebäck algorithm """
 
@@ -213,21 +248,21 @@ def opticalFlowInput():
     print(f'Set 1 labels ({len(set_1_label)}):\n\t{set_1_label}\n')
 
     # training set
-    set_2 = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_2_indices[c]]
-    set_2_label = [f'{classes[c]}' for c in range(len(classes)) for i in set_2_indices[c]]
-    print(f'Set 2 to be used for train and validation ({len(set_2)}):\n\t{set_2}')
-    print(f'Set 2 labels ({len(set_2_label)}):\n\t{set_2_label}')
+    train_files = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_2_indices[c]]
+    train_labels = [f'{classes[c]}' for c in range(len(classes)) for i in set_2_indices[c]]
+    print(f'Set 2 to be used for train and validation ({len(train_files)}):\n\t{train_files}')
+    print(f'Set 2 labels ({len(train_labels)}):\n\t{train_labels}')
     
     
-    training_data = opticalFlowCalculator(set_2)
+    training_data = opticalFlowCalculator(train_files)
     testing_data = opticalFlowCalculator(set_1)
-    train_labels = set_2_label
+    train_labels = train_labels
     test_labels = set_1_label
     
     return (training_data, train_labels, testing_data, test_labels)
 
 """   Data augmentation and Normalisation """
-def dataAugmentation(img_set, img_labels):
+def dataAugmentation():
 
     img_augmentation = Sequential(
     [
