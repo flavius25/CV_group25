@@ -11,7 +11,7 @@ from keras import layers
 
 """ Function for sorting the Stanford40 data in a way that can be accessed by Keras data loading function """
 
-def dataExtraction(needDirectories):
+def dataExtractionSF(needDirectories):
 
     with open('Stanford40/ImageSplits/train.txt', 'r') as f:
         train_files = list(map(str.strip, f.readlines()))
@@ -62,7 +62,7 @@ def dataExtraction(needDirectories):
 
 def loadSF40(img_size=(224,224), needDirectories=False):
 
-    train_labels, test_labels, validation_labels, class_names = dataExtraction(needDirectories)
+    train_labels, test_labels, validation_labels, class_names = dataExtractionSF(needDirectories)
  
     train_ds = keras.utils.image_dataset_from_directory(
     directory='SF_train/',
