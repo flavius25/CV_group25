@@ -67,7 +67,8 @@ def loadSF40(img_size=(224,224), needDirectories=False):
     train_ds = keras.utils.image_dataset_from_directory(
     directory='SF_train/',
     labels='inferred',
-    label_mode='categorical',
+    label_mode='int',
+    #label_mode='categorical',
     batch_size=32,
     image_size=img_size,
     shuffle=True
@@ -76,7 +77,8 @@ def loadSF40(img_size=(224,224), needDirectories=False):
     val_ds = keras.utils.image_dataset_from_directory(
     directory='SF_validation/',
     labels='inferred',
-    label_mode='categorical',
+    label_mode='int',
+    #label_mode='categorical',
     batch_size=32,
     image_size=img_size,
     shuffle=True
@@ -85,7 +87,8 @@ def loadSF40(img_size=(224,224), needDirectories=False):
     test_ds = keras.utils.image_dataset_from_directory(
     directory='SF_test/',
     labels='inferred',
-    label_mode='categorical',
+    label_mode='int',
+    #label_mode='categorical',
     batch_size=32,
     image_size=img_size
     )
