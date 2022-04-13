@@ -20,12 +20,6 @@ NUM_CLASSES = 40 # 40 classes in the Stanford40 dataset
 #Load the dataset which has already been preprocessed, set needDirectories to False if SF_train, SF_test, and SF_validation dirs already exist
 train_ds, test_ds, val_ds, train_labels, test_labels, validation_labels, class_names = loadSF40(img_size =  IMG_SIZE, needDirectories=False)
 
-
-#no of train and validation images
-NO_TRAIN_IMGS = len(train_labels)
-NO_VAL_IMGS = len(validation_labels)
-
-
 #https://www.tensorflow.org/api_docs/python/tf/data/Dataset#from_tensor_slices
 #http://man.hubwiz.com/docset/TensorFlow_2.docset/Contents/Resources/Documents/tf/data/Dataset.html 
 
