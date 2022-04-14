@@ -8,7 +8,6 @@ from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras import layers
 
-
 """ Function for sorting the Stanford40 data in a way that can be accessed by Keras data loading function """
 
 def dataExtractionSF(needDirectories):
@@ -91,7 +90,6 @@ def loadSF40(img_size=(224,224), needDirectories=False):
     )
     
     return train_ds, test_ds, val_ds, train_labels, test_labels, validation_labels, class_names
-
 
 """ Do dataExtraction on TVHI dataset, get the middle frame and sort into directories for easier data loading """
 
@@ -184,51 +182,9 @@ def loadTVHI(img_size=(224,224), needDirectories=False):
     
     return train_ds, test_ds, val_ds, train_labels, test_labels, validation_labels, class_names
 
-""" Function for calculating the optical flow with Farnebäck algorithm """
-
-def opticalFlowCalculator(video_path, img_size=(224,224)):
-    optical_flow_data = []
-    
-    for video in video_path:
-
-        vidcap = cv2.VideoCapture(f'../TVHI_data/tV_human_interactions_videos/{video}') # get video
-        middle_frame = int((vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)-8)      # get index of middle frame, set to -8 frames back so that when we take stack of frames, the middle one will be in the middle of the stack
-        vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame)               # set the video to the middle frame    
-        success, old_frame = vidcap.read()                              # read image
-
-        hsv = np.zeros_like(old_frame) 
-        hsv[...,1] = 255                                                # Set HSV's Value-channel to constant
-
-        old_frame = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)         # Convert to grayscale to fit algorithm (Farneback)
-        old_frame  = cv2.resize(old_frame, img_size)                   # Resize image to fit the other data
-
-        stackOFframes = []
-        
-        OF_params = [0.5, 3, 15, 3, 5, 1.2, 0] #default Farnebacks parameters
-        
-        for i in range(16): #Loop over 16 frames, middle frame will be middle of stack
-            success, new_frame = vidcap.read()
-            if not success:
-                break
-            
-            #Do preprocessing of new frame 
-            new_frame  = cv2.cvtColor(new_frame,cv2.COLOR_BGR2GRAY)
-            new_frame  = cv2.resize(new_frame, img_size)
-
-            flow = cv2.calcOpticalFlowFarneback(old_frame,new_frame, None, OF_params)   # calculate the optical flow for each pixel in the frame with Farneback
-
-            stackOFframes.append(flow)           # add the stack of 16 frames to list
-
-            old_frame = new_frame               # update the previous frame to current frame
-                
-        optical_flow_data.append(np.asarray(stackOFframes))     #make the stack of frames into an np array and store in general optical flow data list
-    
-    return optical_flow_data
-
-
 """ the Optical Flow input to the CNN """
 
-def opticalFlowInput():
+def opticalFlowDataExtraction(IMG_SIZE=(224,224)):
     
     #Take relevant data and create test and training set (set 1 = test set,set 2 = training set)
     set_1_indices = [[2,14,15,16,18,19,20,21,24,25,26,27,28,32,40,41,42,43,44,45,46,47,48,49,50],
@@ -240,33 +196,83 @@ def opticalFlowInput():
                     [1,5,6,7,8,9,10,13,14,19,22,23,24,25,26,28,37,38,39,40,41,43,45,47,48],
                     [2,3,4,5,6,15,19,20,21,25,27,28,30,32,33,34,37,43,44,45,46,47,48,49,50]]
     classes = ['handShake', 'highFive', 'hug', 'kiss']  # we ignore the negative class
-
+ 
     # test set
-    set_1 = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_1_indices[c]]
-    set_1_label = [f'{classes[c]}' for c in range(len(classes)) for i in set_1_indices[c]]
-    print(f'Set 1 to be used for test ({len(set_1)}):\n\t{set_1}')
-    print(f'Set 1 labels ({len(set_1_label)}):\n\t{set_1_label}\n')
-
+    test_files = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_1_indices[c]]
+    test_labels = [f'{classes[c]}' for c in range(len(classes)) for i in set_1_indices[c]]
+   
     # training set
     train_files = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_2_indices[c]]
     train_labels = [f'{classes[c]}' for c in range(len(classes)) for i in set_2_indices[c]]
-    print(f'Set 2 to be used for train and validation ({len(train_files)}):\n\t{train_files}')
-    print(f'Set 2 labels ({len(train_labels)}):\n\t{train_labels}')
+     
+    #Split training data here 
+    train_files, validation_files, train_labels, validation_labels = train_test_split(train_files, train_labels, test_size=0.15, random_state=0, stratify=train_labels)
+
     
-    
-    training_data = opticalFlowCalculator(train_files)
-    testing_data = opticalFlowCalculator(set_1)
-    train_labels = train_labels
-    test_labels = set_1_label
-    
-    return (training_data, train_labels, testing_data, test_labels)
+    print("Beginning sorting images...")
+        # Specify names of directories for train, validation and test data
+    dirs_needed = ["OF_train", "OF_test", "OF_validation"]
+    files_n_labels = [[train_files, train_labels], [test_files, test_labels],[validation_files, validation_labels]]
+
+    for s in range(len(dirs_needed)):
+
+        os.mkdir(dirs_needed[s]) # make directory each for training, validation and test sets
+
+        for label in classes:
+            os.mkdir(f"{dirs_needed[s]}/{label}") # in each directory make directories for all categories
+
+        counter = 0
+        #Loop through all videos, take middle frame and place them in the correct folder
+        for video in range(len(files_n_labels[s][0])):
+            video_name = f"{files_n_labels[s][0][video]}_{counter}"
+            os.mkdir(f"{dirs_needed[s]}/{label}/{video_name}")
+            label = files_n_labels[s][1][video]
+            vidcap = cv2.VideoCapture(f'TVHI_data/tv_human_interactions_videos/{files_n_labels[s][0][video]}')
+            starting_frame = int((vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)-8)
+            vidcap.set(cv2.CAP_PROP_POS_FRAMES, starting_frame) #Get the middle frame of the video
+            success, old_frame = vidcap.read()
+            
+            #preprocess image
+            hsv = np.zeros_like(old_frame) 
+            hsv[...,1] = 255                                                # Set HSV's Value-channel to constant
+            old_frame = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)         # Convert to grayscale to fit algorithm (Farneback)
+          
+
+            counter2 = 0
+            for i in range(16): #Loop over 16 frames, middle frame will be middle of stack
+
+                success, new_frame = vidcap.read()
+                if not success:
+                    break
+                
+                #Do preprocessing of new frame 
+                new_frame  = cv2.cvtColor(new_frame,cv2.COLOR_BGR2GRAY)
+                new_frame  = cv2.resize(new_frame, IMG_SIZE)
+
+                flow = cv2.calcOpticalFlowFarneback(old_frame,new_frame, None, 0.5, 3, 15, 3, 5, 1.2, 0)   # calculate the optical flow for each pixel in the frame with Farneback
+                
+                mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])       # find magnitude and direction and encode it in an image
+                hsv[..., 0] = ang*180/np.pi/2
+                hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+                bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+                of_frame  = cv2.resize(bgr, IMG_SIZE)                   # Resize image to fit the other data
+                
+                frame_name = f"{video_name}_{counter2}.jpg"
+                path = f'./{dirs_needed[s]}/{label}/{video_name}'
+                cv2.imwrite(os.path.join(path,frame_name), of_frame) #Write image to directory
+                counter2 += 1 
+            
+            print(f"{video_name} , {label}")
+            counter += 1 
+
+    print("Done sorting images!")
 
 """   Data augmentation and Normalisation """
 def dataAugmentation():
 
     img_augmentation = Sequential(
     [
-        layers.Rescaling(scale=1./255),
+        #layers.Rescaling(scale=1./255),
         layers.RandomRotation(factor=0.15),
         layers.RandomTranslation(height_factor=0.1, width_factor=0.1),
         layers.RandomFlip(mode="horizontal"),
@@ -288,7 +294,7 @@ def plotAccuracy(title, train_acc, val_acc):
     plt.ylabel("Accuracy")
     plt.xlabel("Epochs")
     plt.legend(['train', 'val'], loc = 'upper left')
-    plt.ylim([0.65, 1])
+    plt.ylim([0, 1])
     plt.show()
 
 """ Function for plotting loss"""
@@ -299,6 +305,11 @@ def plotLoss(title, train_loss, val_loss):
     plt.plot(val_loss)
     plt.ylabel("Loss")
     plt.xlabel("Epochs")
-    plt.legend(['train', 'val'], loc = 'upper left')
-    plt.ylim([0, 1])
+    plt.legend(['train', 'val'], loc = 'lower left')
+    plt.ylim([0, 5])
     plt.show()
+
+
+opticalFlowDataExtraction()   
+
+# https://medium.com/swlh/building-a-custom-keras-data-generator-to-generate-a-sequence-of-videoframes-for-temporal-analysis-e364e9b70eb 
