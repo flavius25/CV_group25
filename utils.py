@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras import layers
+import pandas as pd
 
 """ Function for sorting the Stanford40 data in a way that can be accessed by Keras data loading function """
 
@@ -38,17 +39,17 @@ def dataExtractionSF(needDirectories):
 
             os.mkdir(dirs_needed[s]) # make directory each for training and test set
 
-            for label in action_categories:
-                os.mkdir(f"{dirs_needed[s]}/{label}") # in each directory make directories for all categories
+            for c_lab in action_categories:
+                os.mkdir(f"{dirs_needed[s]}/{c_lab}") # in each directory make directories for all categories
 
             counter = 0
             #Loop through all images and place them in the correct folder
             for file in range(len(files_n_labels[s][0])):
-                label = files_n_labels[s][1][file]
+                c_lab = files_n_labels[s][1][file]
                 image = cv2.imread(f"Stanford40/JPEGImages/{files_n_labels[s][0][file]}")
                 image_name = f"{files_n_labels[s][1][file]}_{counter}.jpg"
-                print(image_name, label)
-                path = f'./{dirs_needed[s]}/{label}'
+                print(image_name, c_lab)
+                path = f'./{dirs_needed[s]}/{c_lab}'
                 counter += 1
                 cv2.imwrite(os.path.join(path,image_name), image) #Write image to directory 
 
@@ -128,20 +129,20 @@ def dataExtractionTVHI(needDirectories):
 
             os.mkdir(dirs_needed[s]) # make directory each for training, validation and test sets
 
-            for label in classes:
-                os.mkdir(f"{dirs_needed[s]}/{label}") # in each directory make directories for all categories
+            for c_lab in classes:
+                os.mkdir(f"{dirs_needed[s]}/{c_lab}") # in each directory make directories for all categories
 
             counter = 0
             #Loop through all videos, take middle frame and place them in the correct folder
             for video in range(len(files_n_labels[s][0])):
-                label = files_n_labels[s][1][video]
+                c_lab = files_n_labels[s][1][video]
                 vidcap = cv2.VideoCapture(f'TVHI_data/tv_human_interactions_videos/{files_n_labels[s][0][video]}')
                 middle_frame = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)
                 vidcap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame) #Get the middle frame of the video
                 success, frame = vidcap.read()
                 image_name = f"{files_n_labels[s][1][video]}_{counter}.jpg"
-                print(image_name, label)
-                path = f'./{dirs_needed[s]}/{label}'
+                print(image_name, c_lab)
+                path = f'./{dirs_needed[s]}/{c_lab}'
                 counter += 1
                 cv2.imwrite(os.path.join(path,image_name), frame) #Write image to directory 
 
@@ -218,27 +219,26 @@ def opticalFlowDataExtraction(IMG_SIZE=(224,224)):
 
         os.mkdir(dirs_needed[s]) # make directory each for training, validation and test sets
 
-        for label in classes:
-            os.mkdir(f"{dirs_needed[s]}/{label}") # in each directory make directories for all categories
+        for c_lab in classes:
+            os.mkdir(f"{dirs_needed[s]}/{c_lab}") # in each directory make directories for all categories
 
-        counter = 0
+        counter1 = 0
         #Loop through all videos, take middle frame and place them in the correct folder
         for video in range(len(files_n_labels[s][0])):
-            video_name = f"{files_n_labels[s][0][video]}_{counter}"
-            os.mkdir(f"{dirs_needed[s]}/{label}/{video_name}")
+            video_name = f"{files_n_labels[s][0][video][:-4]}"
             label = files_n_labels[s][1][video]
+            print("video_name:  ", video_name)
+            os.mkdir(f"{dirs_needed[s]}/{label}/{video_name}")
             vidcap = cv2.VideoCapture(f'TVHI_data/tv_human_interactions_videos/{files_n_labels[s][0][video]}')
             starting_frame = int((vidcap.get(cv2.CAP_PROP_FRAME_COUNT)/2)-8)
             vidcap.set(cv2.CAP_PROP_POS_FRAMES, starting_frame) #Get the middle frame of the video
             success, old_frame = vidcap.read()
-            
             #preprocess image
             hsv = np.zeros_like(old_frame) 
             hsv[...,1] = 255                                                # Set HSV's Value-channel to constant
             old_frame = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)         # Convert to grayscale to fit algorithm (Farneback)
-          
 
-            counter2 = 0
+            counter = 0
             for i in range(16): #Loop over 16 frames, middle frame will be middle of stack
 
                 success, new_frame = vidcap.read()
@@ -247,7 +247,6 @@ def opticalFlowDataExtraction(IMG_SIZE=(224,224)):
                 
                 #Do preprocessing of new frame 
                 new_frame  = cv2.cvtColor(new_frame,cv2.COLOR_BGR2GRAY)
-                new_frame  = cv2.resize(new_frame, IMG_SIZE)
 
                 flow = cv2.calcOpticalFlowFarneback(old_frame,new_frame, None, 0.5, 3, 15, 3, 5, 1.2, 0)   # calculate the optical flow for each pixel in the frame with Farneback
                 
@@ -256,16 +255,44 @@ def opticalFlowDataExtraction(IMG_SIZE=(224,224)):
                 hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
                 bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
                 of_frame  = cv2.resize(bgr, IMG_SIZE)                   # Resize image to fit the other data
-                
-                frame_name = f"{video_name}_{counter2}.jpg"
+                frame_name = f"{video_name}_{counter}.jpg"
                 path = f'./{dirs_needed[s]}/{label}/{video_name}'
+                #print("path: ", path)
                 cv2.imwrite(os.path.join(path,frame_name), of_frame) #Write image to directory
-                counter2 += 1 
+                counter += 1 
             
             print(f"{video_name} , {label}")
-            counter += 1 
+            counter1 += 1 
 
     print("Done sorting images!")
+
+def toCSVconverter():
+    num_classes = 4
+    labels_name = {'handShake' : 0, 'highFive': 1, 'hug' : 2, 'kiss' : 3}
+
+    dirs = ["OF_train", "OF_test", "OF_validation"]
+
+    os.mkdir("data_files")
+    for i in dirs:
+        os.mkdir(f"data_files/{i}")
+        train_data_path = f"{i}"
+    
+        data_dir_list = os.listdir(train_data_path)
+        for data_dir in data_dir_list:
+            label = labels_name[str(data_dir)]
+            video_list = os.listdir(os.path.join(train_data_path, data_dir))
+            for vid in video_list: # Loop over each video
+                train_df = pd.DataFrame(columns=["FileName", "Label", "ClassName"]) #Create dataframe for each video
+                img_list = os.listdir(os.path.join(train_data_path, data_dir, vid))
+                for img in img_list:
+                    img_path = os.path.join(train_data_path, data_dir, vid, img) #get the image path for each frame and append it to the created dataframe
+                    train_df = train_df.append({"FileName": img_path, "Label" : label, "ClassName" : data_dir}, ignore_index=True)
+                file_name = f"{data_dir}_{vid}.csv"
+                train_df.to_csv(f"data_files/train/{file_name}")
+
+    #https://medium.com/@anuj_shah/creating-custom-data-generator-for-training-deep-learning-models-part-3-c239297cd5d6
+
+toCSVconverter()
 
 """   Data augmentation and Normalisation """
 def dataAugmentation():
@@ -309,7 +336,7 @@ def plotLoss(title, train_loss, val_loss):
     plt.ylim([0, 5])
     plt.show()
 
-
-opticalFlowDataExtraction()   
+   
 
 # https://medium.com/swlh/building-a-custom-keras-data-generator-to-generate-a-sequence-of-videoframes-for-temporal-analysis-e364e9b70eb 
+
