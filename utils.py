@@ -9,6 +9,8 @@ from keras.models import Sequential
 from keras import layers
 import pandas as pd
 
+from dataStackGenerator import dataStackGenerator
+
 """ Function for sorting the Stanford40 data in a way that can be accessed by Keras data loading function """
 
 def dataExtractionSF(needDirectories):
@@ -293,6 +295,62 @@ def toCSVconverter():
     #https://medium.com/@anuj_shah/creating-custom-data-generator-for-training-deep-learning-models-part-3-c239297cd5d6
 
 toCSVconverter()
+
+""" Load Optical Flow data as data generator which inputs 16 images as 1 input """
+
+def loadOFdatagens():
+    params = {
+    'batch_size':64,
+    'dim':(48,48),
+    'n_classes':2,
+    'is_autoencoder':True,
+    'shuffle':True }
+
+    train_gen = dataStackGenerator(path_to_traindata,**params)
+    val_gen = dataStackGenerator(path_to_validationdata,**params)
+    test_gen = dataStackGenerator(path_to_testdata, **params)
+
+    return train_gen, val_gen, test_gen
+
+def filegenerator(CSV_folder,temporal_length,temporal_stride):
+    ## Creates a python generator that 'yields' a sequence of frames every time based on the temporal lengtha and stride.
+    for file in CSV_folder:
+        data = pd.read_csv('path to each .csv file)
+        labels = list(data.Label)
+        img_list = list(data.FileName)
+        samples = deque()
+        sample_count = 0
+
+    for img in img_list:
+        samples.append(img)
+        if len(samples)== temporal_length: 
+        samples_c = copy.deepcopy(samples)
+        samp_count += 1
+        for i in range(temporal_stride):
+            samples.popleft() 
+        yield samples_c,labels[0]
+        samples.popleft()#Eliminates the frame at the left most end to                  #######################accomodate the next frame in the sequence to #######################previous frame.
+
+
+##Function to create the files structured based on the temporal requirements.:
+def seq_of_frames(folder,d_type,length,stride):
+
+    for csv_file in os.listdir(folder+'/'+d_type) 
+    file_gen = filegenerator(csv_file,temporal_length,temporal_stride)
+    iterator = True
+    data_list = []
+    while iterator:
+        try:
+        X,y = next(file_gen)
+        X = list(X) 
+        data_list.append([X,y])
+        except Exception as e:
+            print("An exception has occured:",e)
+            iterator = False 
+    
+    return data_list
+
+
 
 """   Data augmentation and Normalisation """
 def dataAugmentation():
