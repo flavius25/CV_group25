@@ -8,8 +8,10 @@ from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras import layers
 import pandas as pd
-
-from dataStackGenerator import dataStackGenerator
+from collections import deque
+import copy
+from sklearn.utils import shuffle
+from keras.utils import np_utils
 
 """ Function for sorting the Stanford40 data in a way that can be accessed by Keras data loading function """
 
@@ -280,76 +282,90 @@ def toCSVconverter():
         train_data_path = f"{i}"
     
         data_dir_list = os.listdir(train_data_path)
+        print(data_dir_list)
         for data_dir in data_dir_list:
             label = labels_name[str(data_dir)]
             video_list = os.listdir(os.path.join(train_data_path, data_dir))
+            print(video_list)
             for vid in video_list: # Loop over each video
-                train_df = pd.DataFrame(columns=["FileName", "Label", "ClassName"]) #Create dataframe for each video
+                train_df = pd.DataFrame(columns=["FileName", "Label", "ClassName"], dtype=object) #Create dataframe for each video
                 img_list = os.listdir(os.path.join(train_data_path, data_dir, vid))
                 for img in img_list:
                     img_path = os.path.join(train_data_path, data_dir, vid, img) #get the image path for each frame and append it to the created dataframe
                     train_df = train_df.append({"FileName": img_path, "Label" : label, "ClassName" : data_dir}, ignore_index=True)
                 file_name = f"{data_dir}_{vid}.csv"
-                train_df.to_csv(f"data_files/train/{file_name}")
+                train_df.to_csv(f"data_files/{i}/{file_name}")
 
     #https://medium.com/@anuj_shah/creating-custom-data-generator-for-training-deep-learning-models-part-3-c239297cd5d6
 
-toCSVconverter()
+#toCSVconverter()
 
 """ Load Optical Flow data as data generator which inputs 16 images as 1 input """
 
 def loadOFdatagens():
     params = {
     'batch_size':64,
-    'dim':(48,48),
-    'n_classes':2,
-    'is_autoencoder':True,
-    'shuffle':True }
+    'dim':(224,224),
+    'n_classes':4,
+    'is_autoencoder':False,
+    'shuffle':False }
 
-    train_gen = dataStackGenerator(path_to_traindata,**params)
-    val_gen = dataStackGenerator(path_to_validationdata,**params)
-    test_gen = dataStackGenerator(path_to_testdata, **params)
+    train_data = seq_of_frames("OF_train", 16)
+    test_data = seq_of_frames("OF_test", 16)
+    val_data = seq_of_frames("OF_validation", 16)
+
+    train_gen = data_generator(train_data,batch_size=10, shuffle=False)
+    val_gen = data_generator(test_data,batch_size=10, shuffle=False)
+    test_gen = data_generator(val_data,batch_size=10, shuffle=False)
+
+    print("Success!")
 
     return train_gen, val_gen, test_gen
 
-def filegenerator(CSV_folder,temporal_length,temporal_stride):
-    ## Creates a python generator that 'yields' a sequence of frames every time based on the temporal lengtha and stride.
-    for file in CSV_folder:
-        data = pd.read_csv('path to each .csv file)
+def filegenerator(data_path, data_files,temporal_length):
+    ## Creates a python generator that 'yields' a sequence of frames every time based on the temporal length and stride.
+    for file in data_files:
+        data = pd.read_csv(os.path.join(data_path, file))
         labels = list(data.Label)
-        img_list = list(data.FileName)
+        total_images = len(labels)
+        if total_images == temporal_length:
+            img_list = list(data.FileName)
+        else:
+            continue
+        
         samples = deque()
-        sample_count = 0
+        samp_count = 0
+        
+        for img in img_list:
+            samples.append(img)
 
-    for img in img_list:
-        samples.append(img)
-        if len(samples)== temporal_length: 
-        samples_c = copy.deepcopy(samples)
-        samp_count += 1
-        for i in range(temporal_stride):
-            samples.popleft() 
-        yield samples_c,labels[0]
-        samples.popleft()#Eliminates the frame at the left most end to                  #######################accomodate the next frame in the sequence to #######################previous frame.
-
+            if len(samples)== temporal_length: 
+                samples_c = copy.deepcopy(samples)
+                samp_count += 1
+                yield samples_c,labels[0]
 
 ##Function to create the files structured based on the temporal requirements.:
-def seq_of_frames(folder,d_type,length,stride):
-
-    for csv_file in os.listdir(folder+'/'+d_type) 
-    file_gen = filegenerator(csv_file,temporal_length,temporal_stride)
+def seq_of_frames(folder, length):
+    
+    data_path = os.path.join("data_files", folder)
+    data_files = os.listdir(data_path)
+    
+    file_gen = filegenerator(data_path, data_files , length)
     iterator = True
     data_list = []
     while iterator:
         try:
-        X,y = next(file_gen)
-        X = list(X) 
-        data_list.append([X,y])
+            X,y = next(file_gen)
+            X = list(X) 
+            data_list.append([X,y])
         except Exception as e:
-            print("An exception has occured:",e)
+            print("StopIteration exception:",e)
             iterator = False 
     
-    return data_list
+    print("length data_files: ", len(data_files))       
+    print("len data_list : ", len(data_list))
 
+    return data_list
 
 
 """   Data augmentation and Normalisation """
@@ -398,3 +414,59 @@ def plotLoss(title, train_loss, val_loss):
 
 # https://medium.com/swlh/building-a-custom-keras-data-generator-to-generate-a-sequence-of-videoframes-for-temporal-analysis-e364e9b70eb 
 
+def shuffle_data(samples):
+    data = shuffle(samples,random_state=2)
+    return data
+
+def preprocess_image(img):
+    img = img/255
+    return img
+
+def data_generator(data,batch_size=10,shuffle=True):              
+    """
+    Yields the next training batch.
+    data is an array [[img1_filename,img2_filename...,img16_filename],label1], [image2_filename,label2],...].
+    """
+    num_samples = len(data)
+    if shuffle:
+        data = shuffle_data(data)
+    while True:   
+        for offset in range(0, num_samples, batch_size):
+            #print ('startring index: ', offset) 
+            # Get the samples you'll use in this batch
+            batch_samples = data[offset:offset+batch_size]
+            # Initialise X_train and y_train arrays for this batch
+            X_train = []
+            y_train = []
+            # For each example
+            for batch_sample in batch_samples:
+                # Load image (X)
+                x = batch_sample[0]
+                y = batch_sample[1]
+                temp_data_list = []
+                for img in x:
+                    try:
+                        img = cv2.imread(img)
+                        #apply any kind of preprocessing here
+                        #img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+                        img = preprocess_image(img)
+                        temp_data_list.append(img)
+
+                    except Exception as e:
+                        print (e)
+                        print ('error reading file: ',img)  
+
+                # Read label (y)
+                #label = label_names[y]
+                # Add example to arrays
+                X_train.append(temp_data_list)
+                y_train.append(y)
+    
+            # Make sure they're numpy arrays (as opposed to lists)
+            X_train = np.array(X_train)
+            #X_train = np.rollaxis(X_train,1,4)
+            y_train = np.array(y_train)
+            y_train = np_utils.to_categorical(y_train, num_classes=4)
+
+            # The generator-y part: yield the next training batch            
+            yield X_train, y_train
